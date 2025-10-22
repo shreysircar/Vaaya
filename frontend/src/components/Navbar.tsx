@@ -3,6 +3,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+ import { useRef } from "react";
 
 // Minimalist Placeholder Icons (Replace these with actual SVG icons from a library like Lucide or Heroicons)
 const SearchIcon = () => (
@@ -55,43 +56,71 @@ export default function Navbar() {
   };
 
   // Component for rendering Auth buttons/icons safely after mounting
-  const AuthButtons = () => {
-    // Show a small skeleton until hydration is complete
-    if (!isMounted) {
-      return <div className="w-16 h-6 bg-gray-100 rounded animate-pulse"></div>;
-    }
 
-    if (user) {
-      // Logged In: Profile/Account Menu (Icon)
-      return (
-        <div className="group relative">
-            <button className="hover:text-gray-600 transition p-1 flex items-center">
-                <UserIcon />
-            </button>
-            <div className="absolute right-0 mt-3 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition duration-200 ease-out z-10">
-                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    My Account
-                </a>
-                <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                >
-                    Logout
-                </button>
-            </div>
-        </div>
-      );
-    }
+const AuthButtons = () => {
+  const { user, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Logged Out: Login/Register Links (Text)
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Skeleton while hydration
+  if (!isMounted) {
+    return <div className="w-16 h-6 bg-gray-100 rounded animate-pulse"></div>;
+  }
+
+  if (user) {
     return (
-      <div className="hidden sm:flex space-x-4 text-base font-medium">
-        <a href="/login" className="text-gray-700 hover:text-gray-900 transition">
-          Sign In
-        </a>
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setOpen(!open)}
+          className="hover:text-gray-600 transition p-1 flex items-center"
+        >
+          <UserIcon />
+        </button>
+
+        {open && (
+          <div className="absolute right-0 mt-3 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-10">
+            <a
+              href="/profile"
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setOpen(false)}
+            >
+              My Account
+            </a>
+            <button
+              onClick={() => {
+                logout();
+                setOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+            >
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     );
-  };
+  }
+
+  // Logged out
+  return (
+    <div className="hidden sm:flex space-x-4 text-base font-medium">
+      <a href="/login" className="text-gray-700 hover:text-gray-900 transition">
+        Sign In
+      </a>
+    </div>
+  );
+};
 
   return (
     // Navbar Container: White, ample padding, subtle border
