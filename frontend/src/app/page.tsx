@@ -57,7 +57,7 @@ export default function HomePage() {
   // Auto-slide logic
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 3) % bannerSlides.length);
+      setActiveIndex((prev) => (prev + 1) % bannerSlides.length);
     }, 5000);
     return () => clearInterval(interval);
   }, []);

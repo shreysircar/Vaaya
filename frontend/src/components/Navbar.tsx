@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
@@ -56,61 +55,43 @@ export default function Navbar() {
   };
 
   // Component for rendering Auth buttons/icons safely after mounting
-// Component for rendering Auth buttons/icons safely after mounting
-const AuthButtons = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const AuthButtons = () => {
+    // Show a small skeleton until hydration is complete
+    if (!isMounted) {
+      return <div className="w-16 h-6 bg-gray-100 rounded animate-pulse"></div>;
+    }
 
-  if (!isMounted) {
-    return <div className="w-16 h-6 bg-gray-100 rounded animate-pulse"></div>;
-  }
-
-  if (user) {
-    // Logged In: Profile/Account Menu (Icon)
-    return (
-      <div className="relative">
-        <button
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          className="hover:text-gray-600 transition p-1 flex items-center"
-        >
-          <UserIcon />
-        </button>
-
-        {dropdownOpen && (
-          <div
-            className="absolute right-0 mt-3 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-10"
-          >
-            <a
-              href="/profile"
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => setDropdownOpen(false)}
-            >
-              My Account
-            </a>
-            <button
-              onClick={() => {
-                handleLogout();
-                setDropdownOpen(false);
-              }}
-              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-            >
-              Logout
+    if (user) {
+      // Logged In: Profile/Account Menu (Icon)
+      return (
+        <div className="group relative">
+            <button className="hover:text-gray-600 transition p-1 flex items-center">
+                <UserIcon />
             </button>
-          </div>
-        )}
+            <div className="absolute right-0 mt-3 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition duration-200 ease-out z-10">
+                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                    My Account
+                </a>
+                <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                >
+                    Logout
+                </button>
+            </div>
+        </div>
+      );
+    }
+
+    // Logged Out: Login/Register Links (Text)
+    return (
+      <div className="hidden sm:flex space-x-4 text-base font-medium">
+        <a href="/login" className="text-gray-700 hover:text-gray-900 transition">
+          Sign In
+        </a>
       </div>
     );
-  }
-
-  // Logged Out: Login/Register Links (Text)
-  return (
-    <div className="hidden sm:flex space-x-4 text-base font-medium">
-      <a href="/login" className="text-gray-700 hover:text-gray-900 transition">
-        Sign In
-      </a>
-    </div>
-  );
-};
-
+  };
 
   return (
     // Navbar Container: White, ample padding, subtle border
