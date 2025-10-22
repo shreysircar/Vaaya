@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata = {
@@ -10,14 +11,18 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[#F5F5F4] text-gray-800">
-        {/* Wrap everything in AuthProvider */}
+      <body className="bg-[#F5F5F4] text-gray-800 flex flex-col min-h-screen">
         <AuthProvider>
+          {/* Navbar */}
           <Navbar />
-          {/* Use full width and height, no extra container */}
-          <main className="min-h-screen w-full">
+
+          {/* Main content grows to fill remaining space */}
+          <main className="flex-grow w-full">
             {children}
           </main>
+
+          {/* Footer */}
+          <Footer />
         </AuthProvider>
       </body>
     </html>

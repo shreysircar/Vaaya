@@ -1,54 +1,4 @@
-/*
-"use client";
 
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
-
-export default function Navbar() {
-  const { user, logout, loading } = useAuth();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    logout();
-    router.push("/login");
-  };
-
-  return (
-    <nav className="flex items-center justify-between bg-white shadow-lg px-6 py-4 sticky top-0 z-50">
-      <h1
-        className="text-3xl font-bold text-blue-600 cursor-pointer hover:text-blue-500 transition"
-        onClick={() => router.push("/")}
-      >
-        E-Shop
-      </h1>
-
-      <div className="flex items-center space-x-6 text-gray-700 font-medium">
-        <a href="/" className="hover:text-blue-500 transition">Home</a>
-        <a href="/cart" className="hover:text-blue-500 transition">Cart</a>
-
-        {!loading && !user && (
-          <>
-            <a href="/login" className="hover:text-blue-500 transition">Login</a>
-            <a href="/register" className="hover:text-blue-500 transition">Sign Up</a>
-          </>
-        )}
-
-        {!loading && user && (
-          <>
-            <a href="/profile" className="hover:text-blue-500 transition">{user.name}</a>
-            <button
-              onClick={handleLogout}
-              className="hover:text-red-600 transition font-semibold"
-            >
-              Logout
-            </button>
-          </>
-        )}
-      </div>
-    </nav>
-  );
-}
-*/
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
@@ -106,43 +56,61 @@ export default function Navbar() {
   };
 
   // Component for rendering Auth buttons/icons safely after mounting
-  const AuthButtons = () => {
-    // Show a small skeleton until hydration is complete
-    if (!isMounted) {
-      return <div className="w-16 h-6 bg-gray-100 rounded animate-pulse"></div>;
-    }
+// Component for rendering Auth buttons/icons safely after mounting
+const AuthButtons = () => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-    if (user) {
-      // Logged In: Profile/Account Menu (Icon)
-      return (
-        <div className="group relative">
-            <button className="hover:text-gray-600 transition p-1 flex items-center">
-                <UserIcon />
-            </button>
-            <div className="absolute right-0 mt-3 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition duration-200 ease-out z-10">
-                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                    My Account
-                </a>
-                <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                >
-                    Logout
-                </button>
-            </div>
-        </div>
-      );
-    }
+  if (!isMounted) {
+    return <div className="w-16 h-6 bg-gray-100 rounded animate-pulse"></div>;
+  }
 
-    // Logged Out: Login/Register Links (Text)
+  if (user) {
+    // Logged In: Profile/Account Menu (Icon)
     return (
-      <div className="hidden sm:flex space-x-4 text-base font-medium">
-        <a href="/login" className="text-gray-700 hover:text-gray-900 transition">
-          Sign In
-        </a>
+      <div className="relative">
+        <button
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className="hover:text-gray-600 transition p-1 flex items-center"
+        >
+          <UserIcon />
+        </button>
+
+        {dropdownOpen && (
+          <div
+            className="absolute right-0 mt-3 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-10"
+          >
+            <a
+              href="/profile"
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setDropdownOpen(false)}
+            >
+              My Account
+            </a>
+            <button
+              onClick={() => {
+                handleLogout();
+                setDropdownOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+            >
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     );
-  };
+  }
+
+  // Logged Out: Login/Register Links (Text)
+  return (
+    <div className="hidden sm:flex space-x-4 text-base font-medium">
+      <a href="/login" className="text-gray-700 hover:text-gray-900 transition">
+        Sign In
+      </a>
+    </div>
+  );
+};
+
 
   return (
     // Navbar Container: White, ample padding, subtle border
