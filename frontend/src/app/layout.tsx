@@ -1,6 +1,6 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import { AuthProvider } from "@/context/AuthContext"; // ✅ import AuthProvider
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata = {
   title: "E-Shop",
@@ -10,11 +10,14 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">
-        {/* ✅ Wrap everything inside AuthProvider */}
+      <body className="bg-[#F5F5F4] text-gray-800">
+        {/* Wrap everything in AuthProvider */}
         <AuthProvider>
           <Navbar />
-          <main className="container mx-auto p-4">{children}</main>
+          {/* Use full width and height, no extra container */}
+          <main className="min-h-screen w-full">
+            {children}
+          </main>
         </AuthProvider>
       </body>
     </html>
