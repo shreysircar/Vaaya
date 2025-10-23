@@ -64,7 +64,7 @@ export default function HomePage() {
   // ⏳ Auto-slide logic (interval increased to 8 seconds)
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % bannerSlides.length);
+      setActiveIndex((prev) => (prev + 2) % bannerSlides.length);
     }, 8000); // ← was 5000, now 8000ms
     return () => clearInterval(interval);
   }, []);
@@ -75,111 +75,108 @@ export default function HomePage() {
   return (
     <div className={`min-h-screen bg-white ${poppins.className}`}>
       <div className="space-y-20 py-10">
-        {/* --- HERO BANNER --- */}
-        <section className="relative w-full overflow-hidden rounded-2xl shadow-md h-[420px] md:h-[520px] max-w-7xl mx-auto">
-          <div
-            className="flex transition-transform duration-700 ease-in-out h-full"
-            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
-          >
-            {bannerSlides.map((slide, index) => (
-              <div key={slide.id} className="relative flex-shrink-0 w-full h-full overflow-hidden">
-                {/* 🖼️ Banner Image */}
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[6000ms] ease-in-out ${
-                    index === activeIndex ? "scale=100" : "scale-[1.15]"
-                  }`}
-                />
-
-                {/* 🌫️ Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent"></div>
-
-                {/* ✨ Animated Text Overlay */}
- <AnimatePresence mode="wait">
-  {index === activeIndex && (
+   {/* --- HERO BANNER --- */}
+<section className="relative w-full overflow-hidden rounded-2xl shadow-md h-[420px] md:h-[520px] max-w-7xl mx-auto">
+  {bannerSlides.map((slide, index) => (
     <motion.div
       key={slide.id}
-      className="absolute bottom-14 left-8 md:bottom-20 md:left-20 max-w-lg text-white z-20"
+      className="absolute inset-0 w-full h-full overflow-hidden"
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      animate={{ opacity: index === activeIndex ? 1 : 0 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 1 }}
     >
-      {/* Title flies in from below */}
-      <motion.h1
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="text-3xl md:text-5xl font-bold mb-4 leading-snug drop-shadow-lg"
-      >
-        {slide.title}
-      </motion.h1>
+      {/* 🖼️ Banner Image with zoom */}
+      <motion.img
+        src={slide.image}
+        alt={slide.title}
+        initial={{ scale: 1.15 }}
+        animate={{ scale: index === activeIndex ? 1 : 1.15 }}
+        transition={{ duration: 1, ease: "easeInOut" }}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
 
-      {/* Subtitle flies in slightly after title */}
-      <motion.p
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="text-base md:text-lg text-gray-200 mb-6 max-w-md leading-relaxed drop-shadow-md"
-      >
-        {slide.subtitle}
-      </motion.p>
+      {/* 🌫️ Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent"></div>
 
-      {/* Button flies in last */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.97 }}
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        onClick={() => router.push("/shop")}
-        className="px-6 py-2 md:px-8 md:py-3 rounded-full font-semibold uppercase tracking-wide shadow-md text-sm md:text-base"
-        style={{ backgroundColor: slide.buttonColor, color: "white" }}
-      >
-        {slide.cta}
-      </motion.button>
+      {/* ✨ Animated Text Overlay */}
+      <AnimatePresence mode="wait">
+        {index === activeIndex && (
+          <motion.div
+            key={slide.id}
+            className="absolute bottom-14 left-8 md:bottom-20 md:left-20 max-w-lg text-white z-20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.h1
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="text-3xl md:text-5xl font-bold mb-4 leading-snug drop-shadow-lg"
+            >
+              {slide.title}
+            </motion.h1>
+
+            <motion.p
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="text-base md:text-lg text-gray-200 mb-6 max-w-md leading-relaxed drop-shadow-md"
+            >
+              {slide.subtitle}
+            </motion.p>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              onClick={() => router.push("/shop")}
+              className="px-6 py-2 md:px-8 md:py-3 rounded-full font-semibold uppercase tracking-wide shadow-md text-sm md:text-base"
+              style={{ backgroundColor: slide.buttonColor, color: "white" }}
+            >
+              {slide.cta}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
-  )}
-</AnimatePresence>
+  ))}
 
+  {/* ⬅️➡️ Arrows */}
+  <button
+    onClick={handlePrev}
+    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl z-30 transition"
+  >
+    ❮
+  </button>
 
-              </div>
-            ))}
-          </div>
+  <button
+    onClick={handleNext}
+    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl z-30 transition"
+  >
+    ❯
+  </button>
 
-          {/* ⬅️➡️ Arrows */}
-          <button
-            onClick={handlePrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl z-30 transition"
-          >
-            ❮
-          </button>
-
-          <button
-            onClick={handleNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl z-30 transition"
-          >
-            ❯
-          </button>
-
-          {/* ⚫ Navigation Dots */}
-          <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
-            {bannerSlides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === activeIndex ? "scale-110 shadow-md" : "opacity-70"
-                }`}
-                style={{
-                  backgroundColor:
-                    index === activeIndex ? DEEP_CHARCOAL : "rgba(255,255,255,0.7)",
-                }}
-              />
-            ))}
-          </div>
-        </section>
+  {/* ⚫ Navigation Dots */}
+  <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
+    {bannerSlides.map((_, index) => (
+      <button
+        key={index}
+        onClick={() => setActiveIndex(index)}
+        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+          index === activeIndex ? "scale-110 shadow-md" : "opacity-70"
+        }`}
+        style={{
+          backgroundColor: index === activeIndex ? DEEP_CHARCOAL : "rgba(255,255,255,0.7)",
+        }}
+      />
+    ))}
+  </div>
+</section>
 
         {/* --- FEATURED PRODUCTS --- */}
         <section
