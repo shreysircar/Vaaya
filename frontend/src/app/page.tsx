@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -63,32 +62,39 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
+  };
+
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % bannerSlides.length);
+  };
+
   return (
     <div className="min-h-screen bg-white"> {/* ✅ Full-page white background */}
       <div className="space-y-20 py-10">
         {/* --- HERO BANNER --- */}
         <section className="relative w-full overflow-hidden rounded-2xl shadow-md h-[420px] md:h-[520px] max-w-7xl mx-auto">
           <div
-            className="flex transition-transform duration-700 ease-in-out h-full"
+            className="flex transition-transform duration-700 ease-in-out h-full w-[100%] md:w-full"
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
             {bannerSlides.map((slide, index) => (
-         <div key={slide.id} className="relative flex-shrink-0 w-full h-full min-w-full overflow-hidden">
-
+              <div key={slide.id} className="relative flex-shrink-0 w-full h-full min-w-full overflow-hidden">
                 {/* Banner Image */}
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[4000ms] ease-in-out ${
-  index === activeIndex ? "scale-100" : "scale-[1.05]"
-}`}
+<img
+  src={slide.image}
+  alt={slide.title}
+  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[6000ms] ease-in-out ${
+    index === activeIndex ? "scale-100" : "scale-[1.15]"
+  }`}
+/>
 
-                />
 
                 {/* Softer Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
 
-                {/* Overlay Text - aligned lower-left but higher to not block visuals */}
+                {/* Overlay Text */}
                 <div className="absolute bottom-14 left-8 md:bottom-20 md:left-20 max-w-lg text-white z-20">
                   <h1 className="text-3xl md:text-5xl font-extrabold mb-4 leading-snug drop-shadow-md">
                     {slide.title}
@@ -110,6 +116,21 @@ className={`absolute inset-0 w-full h-full object-cover transition-transform dur
               </div>
             ))}
           </div>
+
+          {/* ⬅️➡️ Arrows */}
+          <button
+            onClick={handlePrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl z-30 transition"
+          >
+            ❮
+          </button>
+
+          <button
+            onClick={handleNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl z-30 transition"
+          >
+            ❯
+          </button>
 
           {/* Navigation Dots */}
           <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
