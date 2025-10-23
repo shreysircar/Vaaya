@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,7 +7,7 @@ import ProductCard from "@/components/ProductCard";
 
 // --- Color Palette ---
 const DEEP_CHARCOAL = "#292524";
-const DEEP_TEAL = "#025a6a";
+const DEEP_BLUE = "#81bdc9";
 const DEEP_TEAL_DARK = "#014755";
 const MUSTARD_LIGHT = "#dec08a";
 const DEEP_YELLOW = "#e8cb58";
@@ -36,7 +37,7 @@ const bannerSlides = [
     subtitle: "Elevate your interiors with modern decor and handcrafted pieces.",
     cta: "Start Decorating",
     image: "/images/banner3.png",
-    buttonColor: DEEP_TEAL,
+    buttonColor: DEEP_BLUE,
   },
 ];
 
@@ -72,14 +73,16 @@ export default function HomePage() {
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
             {bannerSlides.map((slide, index) => (
-              <div key={slide.id} className="relative flex-shrink-0 w-full h-full">
+         <div key={slide.id} className="relative flex-shrink-0 w-full h-full min-w-full overflow-hidden">
+
                 {/* Banner Image */}
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[4000ms] ease-in-out ${
-                    index === activeIndex ? "scale-[1.05]" : "scale-100"
-                  }`}
+className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[4000ms] ease-in-out ${
+  index === activeIndex ? "scale-100" : "scale-[1.05]"
+}`}
+
                 />
 
                 {/* Softer Gradient Overlay */}
@@ -119,7 +122,7 @@ export default function HomePage() {
                 }`}
                 style={{
                   backgroundColor:
-                    index === activeIndex ? DEEP_TEAL : "rgba(255,255,255,0.7)",
+                    index === activeIndex ? DEEP_CHARCOAL : "rgba(255,255,255,0.7)",
                 }}
               />
             ))}
