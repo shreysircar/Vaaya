@@ -1,6 +1,6 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-import { authMiddleware } from "../middleware/auth.js";
+import { authMiddleware, adminMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -28,8 +28,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ✅ POST create product (admin/seller only) - FIXED
-router.post("/", authMiddleware, async (req, res) => {
+// ✅ POST create product (admin/seller only)
+router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { name, description, price, stock, category, imageUrl } = req.body;
     const product = await prisma.product.create({
@@ -41,8 +41,8 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ PUT update product (admin/seller only) - FIXED
-router.put("/:id", authMiddleware, async (req, res) => {
+// ✅ PUT update product (admin/seller only)
+router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { name, description, price, stock, category, imageUrl } = req.body;
     const product = await prisma.product.update({
@@ -55,8 +55,8 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// ✅ DELETE product (admin/seller only) - FIXED
-router.delete("/:id", authMiddleware, async (req, res) => {
+// ✅ DELETE product (admin/seller only)
+router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     await prisma.product.delete({ where: { id: req.params.id } });
     res.json({ message: "Product deleted successfully" });

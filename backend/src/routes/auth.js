@@ -7,7 +7,8 @@ import { authMiddleware } from "../middleware/auth.js";
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// ✅ REGISTER
+// ============================
+// ✅ REGISTER (Buyer)
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -21,7 +22,7 @@ router.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword },
+      data: { name, email, password: hashedPassword, isAdmin: false },
     });
 
     const token = generateToken(user);
@@ -32,7 +33,34 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// ✅ LOGIN
+// ============================
+// ✅ ADMIN/SELLER REGISTER
+router.post("/admin/register", async (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password)
+    return res.status(400).json({ message: "All fields are required" });
+
+  try {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser)
+      return res.status(400).json({ message: "Email already registered" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: { name, email, password: hashedPassword, isAdmin: true },
+    });
+
+    const token = generateToken(user);
+    res.status(201).json({ user, token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ============================
+// ✅ LOGIN (Buyer + Admin)
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -54,12 +82,13 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ✅ ME (get current user)
+// ============================
+// ✅ GET CURRENT USER (ME)
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, name: true, email: true, role: true },
+      select: { id: true, name: true, email: true, isAdmin: true },
     });
     res.json(user);
   } catch (err) {

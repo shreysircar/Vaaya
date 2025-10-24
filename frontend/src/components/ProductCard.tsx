@@ -45,11 +45,11 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Text */}
         <div className="p-5 transition-all duration-300 ease-in-out group-hover:mb-12">
-          <h3 className="font-semibold text-[#292524] text-lg mb-1 truncate">
+          <h3 className="font-semibold text-[#292524] text-sm mb-1 truncate">
             {product.name}
           </h3>
 
-          <p className="text-[#737373] font-bold text-base tracking-wider">
+          <p className="text-[#737373] font-bold text-xs tracking-wider">
             ${product.price.toFixed(2)}
           </p>
         </div>
