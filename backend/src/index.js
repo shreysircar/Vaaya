@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 
 import productRoutes from "./routes/product.js";
 import authRoutes from "./routes/auth.js";
+import orderRoutes from "./routes/order.js";
 
 dotenv.config();
 
@@ -21,6 +22,8 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products",productRoutes);
+app.use("/api/orders", orderRoutes);
+
 
 // Start server
 const PORT = process.env.PORT || 5000;
