@@ -124,7 +124,7 @@ const AuthButtons = () => {
 
   return (
     // Navbar Container: White, ample padding, subtle border
-    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">*/
+    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
     
       
      {/* Main Bar: Max width container for clean layout */}
