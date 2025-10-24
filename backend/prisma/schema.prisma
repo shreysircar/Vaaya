@@ -21,3 +21,14 @@ model User {
   role      String   @default("BUYER") // can be BUYER or ADMIN/SELLER
   createdAt DateTime @default(now())
 }
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  stock       Int
+  imageUrl    String?
+  category    String
+  createdAt   DateTime @default(now())
+}

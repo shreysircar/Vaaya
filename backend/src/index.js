@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 
+import productRoutes from "./routes/product.js";
 import authRoutes from "./routes/auth.js";
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/products",productRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
