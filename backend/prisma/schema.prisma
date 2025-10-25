@@ -44,7 +44,12 @@ model User {
   orders    Order[] // ← relation to orders
 }
 
-// Update Product model to include relation
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[] // relation to Product
+}
+
 model Product {
   id          String      @id @default(cuid())
   name        String
@@ -52,7 +57,8 @@ model Product {
   price       Float
   stock       Int
   imageUrl    String?
-  category    String
   createdAt   DateTime    @default(now())
-  orderItems  OrderItem[] // ← relation to order items
+  categoryId  String      // ← required
+  category    Category    @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[] 
 }

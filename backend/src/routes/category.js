@@ -5,16 +5,19 @@ import { authMiddleware } from "../middleware/auth.js";
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// GET /api/categories → List all categories
+// GET /api/categories → List all categories with products
 router.get("/", async (req, res) => {
   try {
-    const categories = await prisma.category.findMany();
+    const categories = await prisma.category.findMany({
+      include: { products: true } // include all products under each category
+    });
     res.json(categories);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 // POST /api/categories → Create a new category
 router.post("/", authMiddleware, async (req, res) => {

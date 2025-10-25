@@ -24,13 +24,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [router]);
 
-  const navItems = [
-    { name: "Dashboard", href: "/admin" },
-    { name: "Products", href: "/admin/products" },
-    { name: "Orders", href: "/admin/orders" },
-    { name: "Users", href: "/admin/users" },
-    { name: "Settings", href: "/admin/settings" },
-  ];
+const navItems = [
+  { name: "Dashboard", href: "/admin" },
+  { name: "Products", href: "/admin/products" },
+  { name: "Orders", href: "/admin/orders" },
+  { name: "Users", href: "/admin/users" },
+  { name: "Categories", href: "/admin/categories" }, // replaced Settings
+];
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");

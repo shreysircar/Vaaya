@@ -28,15 +28,28 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ✅ POST create product (admin/seller only)
+// POST create product
 router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, description, price, stock, category, imageUrl } = req.body;
+    const { name, description, price, stock, categoryId, imageUrl } = req.body;
+
+    // Find category by ID
+    const categoryRecord = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!categoryRecord) return res.status(400).json({ message: "Invalid category" });
+
     const product = await prisma.product.create({
-      data: { name, description, price: parseFloat(price), stock: parseInt(stock), category, imageUrl },
+      data: {
+        name,
+        description,
+        price: parseFloat(price),
+        stock: parseInt(stock),
+        categoryId: categoryRecord.id,
+        imageUrl,
+      },
     });
     res.status(201).json(product);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to create product" });
   }
 });
@@ -44,13 +57,26 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
 // ✅ PUT update product (admin/seller only)
 router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, description, price, stock, category, imageUrl } = req.body;
+    const { name, description, price, stock, categoryId, imageUrl } = req.body;
+
+    // Find category by ID
+    const categoryRecord = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!categoryRecord) return res.status(400).json({ message: "Invalid category" });
+
     const product = await prisma.product.update({
       where: { id: req.params.id },
-      data: { name, description, price, stock, category, imageUrl },
+      data: {
+        name,
+        description,
+        price: parseFloat(price),
+        stock: parseInt(stock),
+        categoryId: categoryRecord.id,
+        imageUrl,
+      },
     });
     res.json(product);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to update product" });
   }
 });
