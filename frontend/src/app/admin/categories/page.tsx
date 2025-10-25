@@ -11,7 +11,7 @@ interface Product {
 }
 
 interface Category {
-  id: number;
+  id: string; // string matches Prisma cuid()
   name: string;
   products: Product[];
 }
@@ -41,7 +41,6 @@ export default function CategoriesPage() {
     fetchCategories();
   }, [token]);
 
-  // Create new category
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) return;
     try {
@@ -56,16 +55,15 @@ export default function CategoriesPage() {
       if (!res.ok) throw new Error("Failed to create category");
       setNewCategoryName("");
       fetchCategories();
-    } catch (err) {
+    } catch {
       alert("Error creating category");
     }
   };
 
-  // Update category
-  const handleUpdateCategory = async (catId: number) => {
-    if (!editingCategoryName.trim()) return;
+  const handleUpdateCategory = async () => {
+    if (!selectedCategory || !editingCategoryName.trim()) return;
     try {
-      const res = await fetch(`${API_URL}/api/categories/${catId}`, {
+      const res = await fetch(`${API_URL}/api/categories/${selectedCategory.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -81,8 +79,7 @@ export default function CategoriesPage() {
     }
   };
 
-  // Delete category
-  const handleDeleteCategory = async (catId: number) => {
+  const handleDeleteCategory = async (catId: string) => {
     if (!confirm("Are you sure you want to delete this category?")) return;
     try {
       const res = await fetch(`${API_URL}/api/categories/${catId}`, {
@@ -100,31 +97,33 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div>
+    <div className="p-6">
       <h1 className="text-3xl font-bold mb-6 text-gray-900">Categories</h1>
+
+      {/* ADD CATEGORY SECTION - completely separate */}
+      <div className="mb-6 flex gap-2 max-w-md">
+        <input
+          type="text"
+          placeholder="New category"
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          className="border rounded px-2 py-1 flex-1"
+        />
+        <button
+          onClick={handleCreateCategory}
+          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+        >
+          Add Category
+        </button>
+      </div>
 
       <div className="flex gap-6">
         {/* Category list */}
-        <div className="w-1/4 bg-white p-4 rounded-xl shadow-md">
+        <div className="w-1/4 bg-white p-4 rounded-xl shadow-md flex flex-col h-[80vh]">
           <h2 className="text-xl font-semibold mb-4">All Categories</h2>
-          
-          <div className="flex mb-4 gap-2">
-            <input
-              type="text"
-              placeholder="New category"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              className="border rounded px-2 py-1 flex-1"
-            />
-            <button
-              onClick={handleCreateCategory}
-              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-            >
-              Add
-            </button>
-          </div>
 
-          <ul className="space-y-2">
+          {/* Scrollable category list */}
+          <ul className="space-y-2 overflow-y-auto flex-1">
             {categories.map((cat) => (
               <li
                 key={cat.id}
@@ -170,7 +169,7 @@ export default function CategoriesPage() {
                 className="border rounded px-2 py-1 flex-1"
               />
               <button
-                onClick={() => handleUpdateCategory(selectedCategory.id)}
+                onClick={handleUpdateCategory}
                 className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
               >
                 Save

@@ -35,14 +35,14 @@ router.post("/", authMiddleware, async (req, res) => {
 
 // PUT /api/categories/:id → Update category
 router.put("/:id", authMiddleware, async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // id is already a string
   const { name } = req.body;
 
   if (!name) return res.status(400).json({ message: "Name is required" });
 
   try {
     const category = await prisma.category.update({
-      where: { id: Number(id) },
+      where: { id }, // use string id directly
       data: { name },
     });
     res.json(category);
@@ -52,17 +52,19 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+
 // DELETE /api/categories/:id → Delete category
 router.delete("/:id", authMiddleware, async (req, res) => {
   const { id } = req.params;
 
   try {
-    await prisma.category.delete({ where: { id: Number(id) } });
+    await prisma.category.delete({ where: { id } }); // use string directly
     res.json({ message: "Category deleted" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 export default router;
