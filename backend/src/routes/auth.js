@@ -82,6 +82,31 @@ router.post("/login", async (req, res) => {
   }
 });
 
+
+// ============================
+// ✅ GET CURRENT ADMIN (ME)
+router.get("/admin/me", authMiddleware, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: "Forbidden: Admins only" });
+    }
+
+    const admin = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, name: true, email: true, isAdmin: true, createdAt: true },
+    });
+
+    if (!admin) return res.status(404).json({ message: "Admin not found" });
+
+    res.json(admin);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 // ============================
 // ✅ GET CURRENT USER (ME)
 router.get("/me", authMiddleware, async (req, res) => {
