@@ -118,41 +118,44 @@ export default function CategoriesPage() {
       </div>
 
       <div className="flex gap-6">
-        {/* Category list */}
-        <div className="w-1/4 bg-white p-4 rounded-xl shadow-md flex flex-col h-[80vh]">
-          <h2 className="text-xl font-semibold mb-4">All Categories</h2>
+     {/* Category list */}
+<div className="w-1/4 bg-white p-4 rounded-xl shadow-md flex flex-col h-[80vh]">
+  <h2 className="text-xl font-semibold mb-4">All Categories</h2>
 
-          {/* Scrollable category list */}
-          <ul className="space-y-2 overflow-y-auto flex-1">
-            {categories.map((cat) => (
-              <li
-                key={cat.id}
-                className={`cursor-pointer p-2 rounded flex justify-between items-center ${
-                  selectedCategory?.id === cat.id ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"
-                }`}
-              >
-                <span onClick={() => setSelectedCategory(cat)}>{cat.name}</span>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => {
-                      setEditingCategoryName(cat.name);
-                      setSelectedCategory(cat);
-                    }}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteCategory(cat.id)}
-                    className="text-red-600 hover:underline text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+  {/* Scrollable category list */}
+  <ul className="space-y-2 overflow-y-auto flex-1">
+    {categories.map((cat) => (
+      <li
+        key={cat.id}
+        className={`cursor-pointer p-2 rounded flex justify-between items-center ${
+          selectedCategory?.id === cat.id ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"
+        }`}
+      >
+        <span className="truncate mr-2" onClick={() => setSelectedCategory(cat)}>
+          {cat.name}
+        </span>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setEditingCategoryName(cat.name);
+              setSelectedCategory(cat);
+            }}
+            className="text-blue-600 hover:bg-blue-100 px-2 py-0.5 rounded text-sm transition"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleDeleteCategory(cat.id)}
+            className="text-red-600 hover:bg-red-100 px-2 py-0.5 rounded text-sm transition"
+          >
+            Delete
+          </button>
         </div>
+      </li>
+    ))}
+  </ul>
+</div>
+
 
         {/* Category details */}
         <div className="flex-1 bg-white p-4 rounded-xl shadow-md">
