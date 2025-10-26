@@ -7,6 +7,7 @@ import productRoutes from "./routes/product.js";
 import authRoutes from "./routes/auth.js";
 import orderRoutes from "./routes/order.js";
 import categoryRoutes from "./routes/category.js";
+import userRoutes from "./routes/user.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products",productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/admin", userRoutes); // GET /api/admin/users
 
 
 // Start server
