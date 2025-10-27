@@ -1,4 +1,3 @@
-// middleware/auth.js
 import jwt from "jsonwebtoken";
 
 export const authMiddleware = (req, res, next) => {
@@ -7,9 +6,11 @@ export const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // decoded should have user info, including role
+    console.log("🧩 Decoded token:", decoded); // 👀 Add this log
+    req.user = decoded;
     next();
   } catch (err) {
+    console.error("❌ JWT verification failed:", err.message);
     return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
@@ -17,6 +18,7 @@ export const authMiddleware = (req, res, next) => {
 // --- New middleware for Admin/Seller only ---
 export const adminMiddleware = (req, res, next) => {
   if (!req.user?.isAdmin) {
+    console.log("🚫 Forbidden request. User:", req.user);
     return res.status(403).json({ message: "Forbidden: Admins only" });
   }
   next();

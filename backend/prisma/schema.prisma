@@ -45,9 +45,12 @@ model User {
 }
 
 model Category {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  products Product[] // relation to Product
+  id             String      @id @default(cuid())
+  name           String      @unique
+  parentId       String?
+  parentCategory Category?   @relation("Subcategories", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories  Category[]  @relation("Subcategories")
+  products       Product[]   @relation("CategoryToProducts")
 }
 
 model Product {
@@ -58,7 +61,7 @@ model Product {
   stock       Int
   imageUrl    String?
   createdAt   DateTime    @default(now())
-  categoryId  String      // ← required
-  category    Category    @relation(fields: [categoryId], references: [id])
-  orderItems  OrderItem[] 
+  categoryId  String
+  category    Category    @relation("CategoryToProducts", fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
 }
