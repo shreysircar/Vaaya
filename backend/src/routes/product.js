@@ -5,40 +5,38 @@ import { authMiddleware, adminMiddleware } from "../middleware/auth.js";
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// ✅ GET all products (public)
+/* -------------------------------------------------------------------------- */
+/* 🧭 GET all products (public)                                               */
+/* -------------------------------------------------------------------------- */
 router.get("/", async (req, res) => {
   try {
     const products = await prisma.product.findMany({
       include: {
-        category: {
-          include: {
-            parentCategory: true, // useful for frontend filters
-          },
-        },
+        parentCategory: true,
+        subCategory: true,
       },
     });
     res.json(products);
   } catch (error) {
-  console.error("❌ Error fetching products:", error);
-  res.status(500).json({
-    message: "Failed to fetch products",
-    error: error.message,
-    stack: error.stack
-  });
-}
+    console.error("❌ Error fetching products:", error);
+    res.status(500).json({
+      message: "Failed to fetch products",
+      error: error.message,
+      stack: error.stack,
+    });
+  }
 });
 
-// ✅ GET single product (public)
+/* -------------------------------------------------------------------------- */
+/* 🧭 GET single product (public)                                             */
+/* -------------------------------------------------------------------------- */
 router.get("/:id", async (req, res) => {
   try {
     const product = await prisma.product.findUnique({
       where: { id: req.params.id },
       include: {
-        category: {
-          include: {
-            parentCategory: true,
-          },
-        },
+        parentCategory: true,
+        subCategory: true,
       },
     });
 
@@ -50,77 +48,102 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ✅ POST create product (Admin only)
+/* -------------------------------------------------------------------------- */
+/* 🧩 POST: Create Product (Admin only)                                       */
+/* -------------------------------------------------------------------------- */
 router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
-  console.log("📥 Received POST /api/products");
-  console.log("🧾 Body:", req.body);
-
   try {
-    const { name, description, price, stock, categoryId, imageUrl } = req.body;
-    console.log("🧠 Parsed fields:", { name, price, stock, categoryId });
+    const {
+      name,
+      description,
+      price,
+      stock,
+      parentCategoryId,
+      subCategoryId,
+      imageUrl,
+    } = req.body;
 
-    if (!name || !price || !stock || !categoryId) {
-      console.log("🚫 Missing required fields");
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!name || !price || !stock || !parentCategoryId || !subCategoryId) {
+      return res
+        .status(400)
+        .json({ message: "Missing required fields (parent + subcategory)" });
     }
 
-    console.log("🔍 Looking up category...");
-    const category = await prisma.category.findUnique({ where: { id: categoryId } });
-
-    if (!category) {
-      console.log("❌ Invalid category ID:", categoryId);
-      return res.status(400).json({ message: "Invalid category" });
+    // ✅ Validate ParentCategory
+    const parent = await prisma.parentCategory.findUnique({
+      where: { id: parentCategoryId },
+    });
+    if (!parent) {
+      return res.status(400).json({ message: "Invalid parent category" });
     }
 
-    // 🚫 Prevent products in parent categories
-    if (category.parentId === null) {
-      console.log("⚠️ Category is a parent category, not allowed:", categoryId);
-      return res.status(400).json({ message: "Products can only be added to subcategories" });
+    // ✅ Validate SubCategory (and ensure it belongs to this parent)
+    const sub = await prisma.subCategory.findUnique({
+      where: { id: subCategoryId },
+    });
+    if (!sub || sub.parentCategoryId !== parentCategoryId) {
+      return res.status(400).json({
+        message:
+          "Invalid subcategory or subcategory does not belong to this parent category",
+      });
     }
 
-    console.log("✅ Creating product...");
     const product = await prisma.product.create({
       data: {
         name,
         description: description || "",
         price: parseFloat(price),
         stock: parseInt(stock),
-        categoryId,
+        parentCategoryId,
+        subCategoryId,
         imageUrl: imageUrl || null,
       },
     });
 
-    console.log("🎉 Product created successfully:", product);
     res.status(201).json(product);
   } catch (error) {
     console.error("❌ Error creating product:", error);
-    if (error.code) console.error("💡 Prisma Error Code:", error.code);
-    if (error.meta) console.error("📦 Prisma Meta:", error.meta);
-    res.status(500).json({
-      message: "Failed to create product",
-      error: error.message,
-      stack: error.stack,
-    });
+    res.status(500).json({ message: "Failed to create product" });
   }
 });
 
-
-// ✅ PUT update product (Admin only)
+/* -------------------------------------------------------------------------- */
+/* 🧩 PUT: Update Product (Admin only)                                       */
+/* -------------------------------------------------------------------------- */
 router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, description, price, stock, categoryId, imageUrl } = req.body;
+    const {
+      name,
+      description,
+      price,
+      stock,
+      parentCategoryId,
+      subCategoryId,
+      imageUrl,
+    } = req.body;
 
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
+    if (!parentCategoryId || !subCategoryId)
+      return res.status(400).json({
+        message: "Both parentCategoryId and subCategoryId are required",
+      });
+
+    const parent = await prisma.parentCategory.findUnique({
+      where: { id: parentCategoryId },
+    });
+    const sub = await prisma.subCategory.findUnique({
+      where: { id: subCategoryId },
     });
 
-    if (!category) return res.status(400).json({ message: "Invalid category" });
-
-    // 🚫 Prevent products being moved to parent categories
-    if (category.parentId === null)
+    if (!parent || !sub)
       return res
         .status(400)
-        .json({ message: "Products can only belong to subcategories" });
+        .json({ message: "Invalid parent or subcategory" });
+
+    if (sub.parentCategoryId !== parentCategoryId)
+      return res.status(400).json({
+        message:
+          "Subcategory does not belong to the provided parent category",
+      });
 
     const product = await prisma.product.update({
       where: { id: req.params.id },
@@ -129,7 +152,8 @@ router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
         description,
         price: parseFloat(price),
         stock: parseInt(stock),
-        categoryId,
+        parentCategoryId,
+        subCategoryId,
         imageUrl,
       },
     });
@@ -141,7 +165,9 @@ router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-// ✅ DELETE product (Admin only)
+/* -------------------------------------------------------------------------- */
+/* 🧩 DELETE: Product (Admin only)                                           */
+/* -------------------------------------------------------------------------- */
 router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const deleted = await prisma.product.delete({

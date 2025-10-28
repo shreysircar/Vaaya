@@ -1,206 +1,383 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { API_URL } from "@/utils/api";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  imageUrl?: string;
-}
-
-interface Category {
-  id: string; // string matches Prisma cuid()
-  name: string;
-  products: Product[];
-}
+import axios from "axios";
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [editingCategoryName, setEditingCategoryName] = useState("");
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const [parents, setParents] = useState<any[]>([]);
+  const [subs, setSubs] = useState<any[]>([]);
+  const [selectedParent, setSelectedParent] = useState<string>("");
+  const [newParentName, setNewParentName] = useState("");
+  const [newParentDesc, setNewParentDesc] = useState("");
+  const [newSubName, setNewSubName] = useState("");
+  const [newSubDesc, setNewSubDesc] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const fetchCategories = async () => {
-    if (!token) return;
+  // ✏️ For editing
+  const [editingParent, setEditingParent] = useState<string | null>(null);
+  const [editingSub, setEditingSub] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+
+  const API = "http://localhost:5000/api/categories";
+
+  /* 🧭 Fetch all parent categories */
+  const fetchParents = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/categories`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch categories");
-      const data = await res.json();
-      setCategories(data);
+      const res = await axios.get(API);
+      setParents(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching parents:", err);
+    }
+  };
+
+  /* 🧭 Fetch subcategories (optionally filtered) */
+  const fetchSubs = async (parentCategoryId?: string) => {
+    try {
+      const url = parentCategoryId
+        ? `${API}/sub?parentCategoryId=${parentCategoryId}`
+        : `${API}/sub`;
+      const res = await axios.get(url);
+      setSubs(res.data);
+    } catch (err) {
+      console.error("Error fetching subcategories:", err);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, [token]);
+    fetchParents();
+    fetchSubs();
+  }, []);
 
-  const handleCreateCategory = async () => {
-    if (!newCategoryName.trim()) return;
+  /* 🧩 Add Parent Category */
+  const handleAddParent = async () => {
+    if (!newParentName.trim()) return alert("Enter a parent category name");
+    setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/categories`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: newCategoryName }),
-      });
-      if (!res.ok) throw new Error("Failed to create category");
-      setNewCategoryName("");
-      fetchCategories();
-    } catch {
-      alert("Error creating category");
+      const token = localStorage.getItem("token");
+      await axios.post(
+        API,
+        { name: newParentName, description: newParentDesc },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setNewParentName("");
+      setNewParentDesc("");
+      fetchParents();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Error adding category");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleUpdateCategory = async () => {
-    if (!selectedCategory || !editingCategoryName.trim()) return;
+  /* 🧩 Add Subcategory */
+  const handleAddSub = async () => {
+    if (!selectedParent) return alert("Select a parent category first");
+    if (!newSubName.trim()) return alert("Enter subcategory name");
+    setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/categories/${selectedCategory.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const token = localStorage.getItem("token");
+      await axios.post(
+        API,
+        {
+          name: newSubName,
+          description: newSubDesc,
+          parentCategoryId: selectedParent,
         },
-        body: JSON.stringify({ name: editingCategoryName }),
-      });
-      if (!res.ok) throw new Error("Failed to update category");
-      setEditingCategoryName("");
-      fetchCategories();
-    } catch {
-      alert("Error updating category");
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setNewSubName("");
+      setNewSubDesc("");
+      fetchSubs(selectedParent);
+      fetchParents();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Error adding subcategory");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteCategory = async (catId: string) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+  /* ✏️ Update category or subcategory */
+  const handleUpdate = async (
+    id: string,
+    type: "parent" | "sub",
+    parentCategoryId?: string
+  ) => {
+    if (!editName.trim()) return alert("Enter a valid name");
+    setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/categories/${catId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `${API}/${id}`,
+        {
+          name: editName,
+          description: editDesc,
+          ...(type === "sub" ? { parentCategoryId } : {}),
         },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Reset editing state
+      setEditingParent(null);
+      setEditingSub(null);
+      setEditName("");
+      setEditDesc("");
+
+      // Refresh
+      fetchParents();
+      if (selectedParent) fetchSubs(selectedParent);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Error updating category");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* 🗑️ Delete category */
+  const handleDelete = async (id: string, type: "parent" | "sub") => {
+    if (!confirm(`Delete this ${type} category?`)) return;
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API}/${id}?type=${type}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to delete category");
-      if (selectedCategory?.id === catId) setSelectedCategory(null);
-      fetchCategories();
-    } catch {
-      alert("Error deleting category");
+      fetchParents();
+      if (type === "sub") fetchSubs(selectedParent);
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Error deleting category");
     }
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6 text-gray-900">Categories</h1>
+    <div className="space-y-8">
+      <h1 className="text-2xl font-bold text-gray-800">Manage Categories</h1>
 
-      {/* ADD CATEGORY SECTION - completely separate */}
-      <div className="mb-6 flex gap-2 max-w-md">
+      {/* Add Parent Category */}
+      <div className="p-4 bg-white rounded-xl shadow border space-y-3">
+        <h2 className="font-semibold text-gray-700">Add Parent Category</h2>
         <input
           type="text"
-          placeholder="New category"
-          value={newCategoryName}
-          onChange={(e) => setNewCategoryName(e.target.value)}
-          className="border rounded px-2 py-1 flex-1"
+          placeholder="Parent category name"
+          value={newParentName}
+          onChange={(e) => setNewParentName(e.target.value)}
+          className="border p-2 rounded w-full"
+        />
+        <input
+          type="text"
+          placeholder="Description (optional)"
+          value={newParentDesc}
+          onChange={(e) => setNewParentDesc(e.target.value)}
+          className="border p-2 rounded w-full"
         />
         <button
-          onClick={handleCreateCategory}
-          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+          onClick={handleAddParent}
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
-          Add Category
+          {loading ? "Adding..." : "Add Parent"}
         </button>
       </div>
 
-      <div className="flex gap-6">
-     {/* Category list */}
-<div className="w-1/4 bg-white p-4 rounded-xl shadow-md flex flex-col h-[80vh]">
-  <h2 className="text-xl font-semibold mb-4">All Categories</h2>
+      {/* Parent Selector */}
+      <div className="p-4 bg-white rounded-xl shadow border space-y-3">
+        <h2 className="font-semibold text-gray-700">Select Parent Category</h2>
+        <select
+          value={selectedParent}
+          onChange={(e) => {
+            setSelectedParent(e.target.value);
+            fetchSubs(e.target.value);
+          }}
+          className="border p-2 rounded w-full"
+        >
+          <option value="">-- Select a parent --</option>
+          {parents.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
 
-  {/* Scrollable category list */}
-  <ul className="space-y-2 overflow-y-auto flex-1">
-    {categories.map((cat) => (
-      <li
-        key={cat.id}
-        className={`cursor-pointer p-2 rounded flex justify-between items-center ${
-          selectedCategory?.id === cat.id ? "bg-blue-100 font-semibold" : "hover:bg-gray-100"
-        }`}
-      >
-        <span className="truncate mr-2" onClick={() => setSelectedCategory(cat)}>
-          {cat.name}
-        </span>
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setEditingCategoryName(cat.name);
-              setSelectedCategory(cat);
-            }}
-            className="text-blue-600 hover:bg-blue-100 px-2 py-0.5 rounded text-sm transition"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => handleDeleteCategory(cat.id)}
-            className="text-red-600 hover:bg-red-100 px-2 py-0.5 rounded text-sm transition"
-          >
-            Delete
-          </button>
-        </div>
-      </li>
-    ))}
-  </ul>
-</div>
+        {/* Add Subcategory only when parent is selected */}
+        {selectedParent && (
+          <div className="space-y-3">
+            <h3 className="font-semibold text-gray-700">Add Subcategory</h3>
+            <input
+              type="text"
+              placeholder="Subcategory name"
+              value={newSubName}
+              onChange={(e) => setNewSubName(e.target.value)}
+              className="border p-2 rounded w-full"
+            />
+            <input
+              type="text"
+              placeholder="Description (optional)"
+              value={newSubDesc}
+              onChange={(e) => setNewSubDesc(e.target.value)}
+              className="border p-2 rounded w-full"
+            />
+            <button
+              onClick={handleAddSub}
+              disabled={loading}
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              {loading ? "Adding..." : "Add Subcategory"}
+            </button>
+          </div>
+        )}
+      </div>
 
+      {/* Category List */}
+      <div className="p-4 bg-white rounded-xl shadow border">
+        <h2 className="font-semibold text-gray-700 mb-4">All Categories</h2>
+        {parents.length === 0 ? (
+          <p className="text-gray-500">No categories yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {parents.map((parent) => (
+              <div key={parent.id} className="border-b pb-3">
+                <div className="flex justify-between items-center">
+                  {editingParent === parent.id ? (
+                    <div className="flex flex-col w-full mr-3">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="border p-1 rounded mb-1"
+                      />
+                      <input
+                        type="text"
+                        value={editDesc}
+                        onChange={(e) => setEditDesc(e.target.value)}
+                        className="border p-1 rounded"
+                      />
+                    </div>
+                  ) : (
+                    <h3 className="font-bold text-lg text-gray-800">
+                      {parent.name}
+                    </h3>
+                  )}
 
-        {/* Category details */}
-        <div className="flex-1 bg-white p-4 rounded-xl shadow-md">
-          <h2 className="text-xl font-semibold mb-4">
-            {selectedCategory ? `Products in "${selectedCategory.name}"` : "Select a category"}
-          </h2>
+                  <div className="flex gap-3">
+                    {editingParent === parent.id ? (
+                      <>
+                        <button
+                          onClick={() =>
+                            handleUpdate(parent.id, "parent")
+                          }
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingParent(null)}
+                          className="text-gray-600 hover:text-gray-800"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingParent(parent.id);
+                            setEditName(parent.name);
+                            setEditDesc(parent.description || "");
+                          }}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(parent.id, "parent")}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
 
-          {editingCategoryName && selectedCategory && (
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={editingCategoryName}
-                onChange={(e) => setEditingCategoryName(e.target.value)}
-                className="border rounded px-2 py-1 flex-1"
-              />
-              <button
-                onClick={handleUpdateCategory}
-                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition"
-              >
-                Save
-              </button>
-            </div>
-          )}
+                {/* Subcategories */}
+                {parent.subcategories?.length > 0 && (
+                  <ul className="pl-6 mt-2 space-y-1 list-disc">
+                    {parent.subcategories.map((sub: any) => (
+                      <li
+                        key={sub.id}
+                        className="flex justify-between items-center text-gray-700"
+                      >
+                        {editingSub === sub.id ? (
+                          <div className="flex flex-col w-full mr-3">
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="border p-1 rounded mb-1"
+                            />
+                            <input
+                              type="text"
+                              value={editDesc}
+                              onChange={(e) => setEditDesc(e.target.value)}
+                              className="border p-1 rounded"
+                            />
+                          </div>
+                        ) : (
+                          <span>{sub.name}</span>
+                        )}
 
-          {selectedCategory?.products.length ? (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b text-gray-600">
-                  <th className="py-2">Product</th>
-                  <th className="py-2">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedCategory.products.map((prod) => (
-                  <tr key={prod.id} className="border-b hover:bg-gray-50 transition">
-                    <td className="py-2">{prod.name}</td>
-                    <td className="py-2">${prod.price.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="text-gray-500 italic">No products in this category</p>
-          )}
-        </div>
+                        <div className="flex gap-2">
+                          {editingSub === sub.id ? (
+                            <>
+                              <button
+                                onClick={() =>
+                                  handleUpdate(
+                                    sub.id,
+                                    "sub",
+                                    parent.id
+                                  )
+                                }
+                                className="text-green-600 hover:text-green-800"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => setEditingSub(null)}
+                                className="text-gray-600 hover:text-gray-800"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setEditingSub(sub.id);
+                                  setEditName(sub.name);
+                                  setEditDesc(sub.description || "");
+                                }}
+                                className="text-blue-600 hover:text-blue-800 text-sm"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDelete(sub.id, "sub")
+                                }
+                                className="text-sm text-red-500 hover:text-red-700"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
