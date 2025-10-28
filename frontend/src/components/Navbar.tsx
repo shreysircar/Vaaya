@@ -4,25 +4,25 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-// === ICONS (same minimalist SVGs) ===
+// === ICONS ===
 const SearchIcon = () => (
   <svg className="w-6 h-6 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
 );
 const XIcon = () => (
   <svg className="w-6 h-6 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 const UserIcon = () => (
   <svg className="w-6 h-6 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 );
 const CartIcon = () => (
   <svg className="w-6 h-6 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
   </svg>
 );
 
@@ -35,7 +35,6 @@ export default function Navbar() {
   const [isMounted, setIsMounted] = useState(false);
   const [categories, setCategories] = useState([]);
 
-  // Hydration safety
   useEffect(() => setIsMounted(true), []);
 
   // === Fetch categories ===
@@ -122,92 +121,96 @@ export default function Navbar() {
     );
   };
 
- return (
-  <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+  return (
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+      {/* === 🟦 TOPBAR === */}
+      <div className="flex items-center justify-between h-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-20"></div>
 
-    {/* === 🟦 NEW TOPBAR (copied logic) === */}
-    <div className="flex items-center justify-between h-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      {/* Left Spacer */}
-      <div className="w-20"></div>
-
-      {/* Centered Logo */}
-      <div className="absolute left-0 right-0 flex justify-center">
-        <img
-          src="/logo.png"
-          alt="E-Store Logo"
-          className="h-12 w-auto object-contain cursor-pointer hover:scale-105 transition-transform"
-          onClick={() => router.push("/")}
-        />
-      </div>
-
-      {/* Right: Icons */}
-      <div className="flex items-center space-x-5 text-gray-800 ml-auto">
-        <button
-          onClick={() => setShowSearch(!showSearch)}
-          className="hover:text-gray-600 transition p-1"
-          aria-label={showSearch ? "Close search" : "Open search"}
-        >
-          {showSearch ? <XIcon /> : <SearchIcon />}
-        </button>
-        <a href="/cart" className="hover:text-gray-600 transition p-1 relative">
-          <CartIcon />
-        </a>
-        <AuthButtons />
-      </div>
-    </div>
-
-    {/* === Search Bar Below Topbar === */}
-    {showSearch && (
-      <div className="border-t border-gray-100 py-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto transition-all duration-300 ease-in-out">
-        <form onSubmit={handleSearchSubmit} className="flex w-full">
-          <input
-            type="text"
-            placeholder="Search for products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:border-gray-500 focus:ring-0 focus:outline-none transition"
-            autoFocus
+        {/* Centered Logo */}
+        <div className="absolute left-0 right-0 flex justify-center">
+          <img
+            src="/logo.png"
+            alt="E-Store Logo"
+            className="h-12 w-auto object-contain cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => router.push("/")}
           />
+        </div>
+
+        {/* Right: Icons */}
+        <div className="flex items-center space-x-5 text-gray-800 ml-auto">
           <button
-            type="submit"
-            className="bg-gray-900 text-white px-6 py-2 rounded-r-md hover:bg-gray-700 transition"
+            onClick={() => setShowSearch(!showSearch)}
+            className="hover:text-gray-600 transition p-1"
+            aria-label={showSearch ? "Close search" : "Open search"}
           >
-            Search
+            {showSearch ? <XIcon /> : <SearchIcon />}
           </button>
-        </form>
+          <a href="/cart" className="hover:text-gray-600 transition p-1 relative">
+            <CartIcon />
+          </a>
+          <AuthButtons />
+        </div>
       </div>
-    )}
 
-    {/* === Existing Category Bar (no changes) === */}
-    <nav className="bg-gray-50 border-t border-gray-200">
-      <ul className="flex items-center justify-center space-x-8 py-3 font-medium text-gray-800 text-sm">
-        {categories.map((cat: any) => (
-          <li key={cat.id} className="group relative cursor-pointer">
-            <span className="hover:text-gray-900">{cat.name}</span>
+      {/* === Search Bar === */}
+      {showSearch && (
+        <div className="border-t border-gray-100 py-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto transition-all duration-300 ease-in-out">
+          <form onSubmit={handleSearchSubmit} className="flex w-full">
+            <input
+              type="text"
+              placeholder="Search for products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:border-gray-500 focus:ring-0 focus:outline-none transition"
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="bg-gray-900 text-white px-6 py-2 rounded-r-md hover:bg-gray-700 transition"
+            >
+              Search
+            </button>
+          </form>
+        </div>
+      )}
 
-            {/* Dropdown - Full width */}
-            {cat.subcategories?.length > 0 && (
-             <div className="absolute left-1/2 top-full -translate-x-1/2 w-screen bg-white shadow-md border-t border-gray-200 opacity-0 invisible group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out z-40">
-                <div className="max-w-7xl mx-auto px-6 py-5 grid grid-cols-3 gap-6">
-                  {cat.subcategories.map((sub: any) => (
-                    <div key={sub.id}>
-                      <h4 className="font-semibold text-gray-800 mb-2">{sub.name}</h4>
-                      <ul className="space-y-1 text-gray-600 text-sm">
-                        {sub.products?.map((p: any) => (
-                          <li key={p.id} className="hover:text-gray-900 cursor-pointer">
-                            {p.name}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-    </nav>
-  </header>
-);
+      {/* === Category Bar === */}
+      <nav className="bg-gray-50 border-t border-gray-200 relative">
+        <ul className="flex items-center justify-center space-x-8 py-3 font-medium text-gray-800 text-sm">
+          {categories.map((cat: any) => (
+            <li key={cat.id} className="group relative cursor-pointer">
+              <span className="hover:text-gray-900">{cat.name}</span>
+
+              {/* 🔽 Full-width dropdown */}
+{cat.subcategories?.length > 0 && (
+  <div className="fixed left-0 top-[7.6rem] w-full bg-white border-t border-gray-200 shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-300 ease-out z-40">
+    <div className="max-w-7xl mx-auto px-8 py-8 grid grid-cols-5 gap-8">
+      {cat.subcategories.map((sub: any) => (
+        <div key={sub.id}>
+          <h4 className="uppercase tracking-wide text-gray-900 font-semibold text-xs mb-4 border-b border-gray-100 pb-1">
+            {sub.name}
+          </h4>
+          <ul className="space-y-2">
+            {sub.products?.map((p: any) => (
+              <li
+                key={p.id}
+                className="text-gray-600 text-sm hover:text-gray-900 transition cursor-pointer"
+              >
+                {p.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+  );
 }
