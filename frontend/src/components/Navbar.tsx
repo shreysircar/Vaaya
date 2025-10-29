@@ -3,6 +3,8 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+
 
 // === ICONS ===
 const SearchIcon = () => (
@@ -127,15 +129,20 @@ export default function Navbar() {
       <div className="flex items-center justify-between h-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="w-20"></div>
 
-        {/* Centered Logo */}
-        <div className="absolute left-0 right-0 flex justify-center">
-          <img
-            src="/logo.png"
-            alt="E-Store Logo"
-            className="h-12 w-auto object-contain cursor-pointer hover:scale-105 transition-transform"
-            onClick={() => router.push("/")}
-          />
-        </div>
+{/* Centered Logo */}
+<div className="absolute left-0 right-0 flex justify-center translate-y-[10px]">
+  <Image
+    src="/logo.svg"
+    alt="Amazon Clone Logo"
+    width={120}
+    height={40}
+    className="cursor-pointer hover:scale-105 transition-transform"
+    onClick={() => router.push("/")}
+    priority
+  />
+</div>
+
+
 
         {/* Right: Icons */}
         <div className="flex items-center space-x-5 text-gray-800 ml-auto">
@@ -176,7 +183,7 @@ export default function Navbar() {
       )}
 
 {/* === Category Bar === */}
-<nav className="bg-white border-t border-gray-200 relative font-[Inter] shadow-inner shadow-gray-100">
+<nav className="bg-white border-t border-gray-100 font-[Inter]">
 
 
   <ul className="flex items-center justify-center space-x-10 py-3 font-medium text-gray-800 text-[0.95rem] tracking-wide">
@@ -185,23 +192,38 @@ export default function Navbar() {
         key={cat.id}
         className="group relative cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]"
       >
-        <span
-          className="relative px-2 py-1 font-[Poppins] text-gray-700 
-          transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]
-          group-hover:text-[#ba9d5d] group-hover:drop-shadow-sm group-hover:scale-[1.03]"
-        >
-          {cat.name}
-          <span
-            className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#8f7a43] via-[#ba9d5d] to-[#d8c27a]
+<span
+  className="relative flex items-center gap-1 px-2 py-1 font-[Poppins] text-gray-700 text-[0.9rem]
+  transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]
+  group-hover:text-[#ba9d5d] group-hover:drop-shadow-sm group-hover:scale-[1.03]"
+>
+  {cat.name}
+  {/* ▼ arrow icon */}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    className="w-3.5 h-3.5 mt-[1px] transition-transform duration-300 group-hover:rotate-180"
+  >
+    <path
+      fillRule="evenodd"
+      d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+      clipRule="evenodd"
+    />
+  </svg>
 
-            group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
-          ></span>
-        </span>
+  {/* underline hover effect */}
+  <span
+    className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#8f7a43] via-[#ba9d5d] to-[#d8c27a]
+    group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
+  ></span>
+</span>
+
 
         {/* 🔽 Full-width dropdown */}
         {cat.subcategories?.length > 0 && (
           <div
-            className="fixed left-0 top-[7.6rem] w-full bg-white/95 backdrop-blur-md border-t border-gray-100 
+            className="fixed left-0 top-[8rem] w-full bg-white/95 backdrop-blur-md border-t border-gray-100 
             shadow-[0_8px_30px_rgba(0,0,0,0.08)] opacity-0 invisible group-hover:visible group-hover:opacity-100 
             translate-y-3 group-hover:translate-y-0 transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] z-40"
           >

@@ -109,9 +109,11 @@ export default function HomePage() {
 
   return (
     <div className={`min-h-screen bg-white ${poppins.className}`}>
-      <div className="space-y-20 py-10">
+      <div className="space-y-20 pt-0 pb-10">
+
         {/* --- HERO BANNER --- */}
-        <section className="relative w-full overflow-hidden rounded-2xl shadow-md h-[420px] md:h-[520px] max-w-7xl mx-auto">
+      <section className="relative w-full overflow-hidden shadow-md h-[420px] md:h-[520px]">
+
           {bannerSlides.map((slide, index) => (
             <motion.div
               key={slide.id}
