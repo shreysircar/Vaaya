@@ -175,35 +175,52 @@ export default function Navbar() {
         </div>
       )}
 
-    {/* === Category Bar === */}
-<nav className="bg-gray-50 border-t border-gray-200 relative">
-  <ul className="flex items-center justify-center space-x-8 py-3 font-medium text-gray-800 text-sm">
+{/* === Category Bar === */}
+<nav className="bg-white border-t border-gray-200 relative font-[Inter] shadow-inner shadow-gray-100">
+
+
+  <ul className="flex items-center justify-center space-x-10 py-3 font-medium text-gray-800 text-[0.95rem] tracking-wide">
     {categories.map((cat: any) => (
-      <li key={cat.id} className="group relative cursor-pointer">
-        <span className="relative hover:text-gray-900 transition-all duration-300">
+      <li
+        key={cat.id}
+        className="group relative cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]"
+      >
+        <span
+          className="relative px-2 py-1 font-[Poppins] text-gray-700 
+          transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]
+          group-hover:text-[#ba9d5d] group-hover:drop-shadow-sm group-hover:scale-[1.03]"
+        >
           {cat.name}
-          <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-gray-900 group-hover:w-full transition-all duration-300 ease-in-out rounded-full"></span>
+          <span
+            className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#8f7a43] via-[#ba9d5d] to-[#d8c27a]
+
+            group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
+          ></span>
         </span>
 
         {/* 🔽 Full-width dropdown */}
         {cat.subcategories?.length > 0 && (
-          <div className="fixed left-0 top-[7.6rem] w-full bg-white border-t border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.08)] 
-          opacity-0 invisible group-hover:visible group-hover:opacity-100 
-          translate-y-2 group-hover:translate-y-0 
-          transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-40">
-            
+          <div
+            className="fixed left-0 top-[7.6rem] w-full bg-white/95 backdrop-blur-md border-t border-gray-100 
+            shadow-[0_8px_30px_rgba(0,0,0,0.08)] opacity-0 invisible group-hover:visible group-hover:opacity-100 
+            translate-y-3 group-hover:translate-y-0 transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] z-40"
+          >
             <div className="max-w-7xl mx-auto px-10 py-10 grid grid-cols-5 gap-10">
               {cat.subcategories.map((sub: any) => (
-                <div key={sub.id} className="transform transition-transform duration-200 hover:scale-[1.02]">
-                  <h4 className="uppercase tracking-wider text-gray-900 font-semibold text-xs mb-4 border-b border-gray-100 pb-2">
+                <div
+                  key={sub.id}
+                  className="transform transition-all duration-500 hover:scale-[1.04]"
+                >
+                  <h4 className="uppercase tracking-wider text-gray-900 font-semibold text-[0.75rem] mb-4 border-b border-gray-200 pb-2 font-[Inter]">
                     {sub.name}
                   </h4>
                   <ul className="space-y-2">
                     {sub.products?.map((p: any) => (
                       <li
                         key={p.id}
-                        className="text-gray-600 text-sm hover:text-gray-900 transition-all duration-200 cursor-pointer hover:translate-x-1"
-                      >
+                      className="text-gray-600 text-sm hover:text-[#8f7a43] hover:bg-[#f7f3e8]/90 px-2 py-1 rounded-md
+transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer hover:translate-x-1"
+>
                         {p.name}
                       </li>
                     ))}
