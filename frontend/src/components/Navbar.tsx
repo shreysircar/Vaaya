@@ -175,42 +175,49 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* === Category Bar === */}
-      <nav className="bg-gray-50 border-t border-gray-200 relative">
-        <ul className="flex items-center justify-center space-x-8 py-3 font-medium text-gray-800 text-sm">
-          {categories.map((cat: any) => (
-            <li key={cat.id} className="group relative cursor-pointer">
-              <span className="hover:text-gray-900">{cat.name}</span>
+    {/* === Category Bar === */}
+<nav className="bg-gray-50 border-t border-gray-200 relative">
+  <ul className="flex items-center justify-center space-x-8 py-3 font-medium text-gray-800 text-sm">
+    {categories.map((cat: any) => (
+      <li key={cat.id} className="group relative cursor-pointer">
+        <span className="relative hover:text-gray-900 transition-all duration-300">
+          {cat.name}
+          <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-gray-900 group-hover:w-full transition-all duration-300 ease-in-out rounded-full"></span>
+        </span>
 
-              {/* 🔽 Full-width dropdown */}
-{cat.subcategories?.length > 0 && (
-  <div className="fixed left-0 top-[7.6rem] w-full bg-white border-t border-gray-200 shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-300 ease-out z-40">
-    <div className="max-w-7xl mx-auto px-8 py-8 grid grid-cols-5 gap-8">
-      {cat.subcategories.map((sub: any) => (
-        <div key={sub.id}>
-          <h4 className="uppercase tracking-wide text-gray-900 font-semibold text-xs mb-4 border-b border-gray-100 pb-1">
-            {sub.name}
-          </h4>
-          <ul className="space-y-2">
-            {sub.products?.map((p: any) => (
-              <li
-                key={p.id}
-                className="text-gray-600 text-sm hover:text-gray-900 transition cursor-pointer"
-              >
-                {p.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
+        {/* 🔽 Full-width dropdown */}
+        {cat.subcategories?.length > 0 && (
+          <div className="fixed left-0 top-[7.6rem] w-full bg-white border-t border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.08)] 
+          opacity-0 invisible group-hover:visible group-hover:opacity-100 
+          translate-y-2 group-hover:translate-y-0 
+          transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-40">
+            
+            <div className="max-w-7xl mx-auto px-10 py-10 grid grid-cols-5 gap-10">
+              {cat.subcategories.map((sub: any) => (
+                <div key={sub.id} className="transform transition-transform duration-200 hover:scale-[1.02]">
+                  <h4 className="uppercase tracking-wider text-gray-900 font-semibold text-xs mb-4 border-b border-gray-100 pb-2">
+                    {sub.name}
+                  </h4>
+                  <ul className="space-y-2">
+                    {sub.products?.map((p: any) => (
+                      <li
+                        key={p.id}
+                        className="text-gray-600 text-sm hover:text-gray-900 transition-all duration-200 cursor-pointer hover:translate-x-1"
+                      >
+                        {p.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </li>
+    ))}
+  </ul>
+</nav>
 
-            </li>
-          ))}
-        </ul>
-      </nav>
     </header>
   );
 }
