@@ -5,6 +5,7 @@ import { useState } from "react";
 import { apiRequest } from "@/utils/api";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
 
 interface AuthFormProps {
   type: "login" | "register";
@@ -102,9 +103,9 @@ export default function AuthForm({ type }: AuthFormProps) {
 
       <p className="text-sm text-gray-600 text-center mt-5">
         {isLogin ? (
-          <>Don’t have an account? <a href="/register" className="text-teal-600 font-medium hover:underline">Sign up</a></>
+          <>Don’t have an account? <Link href="/register" className="text-teal-600 font-medium hover:underline">Sign up</Link></>
         ) : (
-          <>Already have an account? <a href="/login" className="text-teal-600 font-medium hover:underline">Log in</a></>
+          <>Already have an account? <Link href="/login" className="text-teal-600 font-medium hover:underline">Log in</Link></>
         )}
       </p>
 
