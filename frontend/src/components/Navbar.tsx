@@ -130,7 +130,7 @@ export default function Navbar() {
         <div className="w-20"></div>
 
 {/* Centered Logo */}
-<div className="absolute left-0 right-0 flex justify-center translate-y-[10px]">
+<div className="absolute left-0 right-0 flex justify-center translate-y-[10px] logo-wrapper">
   <Image
     src="/logo.svg"
     alt="Amazon Clone Logo"
@@ -141,6 +141,7 @@ export default function Navbar() {
     priority
   />
 </div>
+
 
 
 

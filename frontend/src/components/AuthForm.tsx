@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -58,7 +57,9 @@ export default function AuthForm({ type }: AuthFormProps) {
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+            className="w-full border border-gray-300 rounded-xl p-3 
+                       text-gray-900 placeholder-gray-500 bg-white
+                       focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
             placeholder="John Doe"
           />
         </div>
@@ -71,7 +72,9 @@ export default function AuthForm({ type }: AuthFormProps) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+          className="w-full border border-gray-300 rounded-xl p-3 
+                     text-gray-900 placeholder-gray-500 bg-white
+                     focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
           placeholder="you@example.com"
         />
       </div>
@@ -83,34 +86,51 @@ export default function AuthForm({ type }: AuthFormProps) {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+          className="w-full border border-gray-300 rounded-xl p-3 
+                     text-gray-900 placeholder-gray-500 bg-white
+                     focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
           placeholder="••••••••"
         />
       </div>
 
-      {/* Teal Submit Button */}
-  <button
-  type="submit"
-  disabled={loading}
-  className={`w-full py-3 rounded-xl text-white font-semibold text-lg transition ${
-    loading
-      ? "bg-[#025a6a]/60 cursor-not-allowed"
-      : "bg-[#025a6a] hover:bg-[#014c57]"
-  }`}
->
-  {loading ? "Processing..." : isLogin ? "LOGIN" : "REGISTER"}
-</button>
+      <button
+        type="submit"
+        disabled={loading}
+        className={`w-full py-3 rounded-xl text-white font-semibold text-lg transition ${
+          loading
+            ? "bg-[#025a6a]/60 cursor-not-allowed"
+            : "bg-[#025a6a] hover:bg-[#014c57]"
+        }`}
+      >
+        {loading ? "Processing..." : isLogin ? "LOGIN" : "REGISTER"}
+      </button>
 
       <p className="text-sm text-gray-600 text-center mt-5">
         {isLogin ? (
-          <>Don’t have an account? <Link href="/register" className="text-teal-600 font-medium hover:underline">Sign up</Link></>
+          <>
+            Don’t have an account?{" "}
+            <Link href="/register" className="text-teal-600 font-medium hover:underline">
+              Sign up
+            </Link>
+          </>
         ) : (
-          <>Already have an account? <Link href="/login" className="text-teal-600 font-medium hover:underline">Log in</Link></>
+          <>
+            Already have an account?{" "}
+            <Link href="/login" className="text-teal-600 font-medium hover:underline">
+              Log in
+            </Link>
+          </>
         )}
       </p>
 
       {message && (
-        <p className={`text-center mt-4 p-3 rounded-lg font-medium ${message.includes("✅") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+        <p
+          className={`text-center mt-4 p-3 rounded-lg font-medium ${
+            message.includes("✅")
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
           {message}
         </p>
       )}
