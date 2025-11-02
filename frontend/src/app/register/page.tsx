@@ -8,9 +8,10 @@ const AuthForm = dynamic(() => import("@/components/AuthForm"), {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-[#F5F5F4] flex items-center justify-center pb-20">
-      {/* Added bottom padding to create clear gap before footer */}
-      <AuthForm type="register" />
-    </div>
+<div className="min-h-screen bg-gradient-to-b from-[#FFF8E1] via-[#E0F7FA] to-[#B2EBF2] flex items-center justify-center pb-20">
+  <AuthForm type="register" />
+</div>
+
+
   );
 }
