@@ -180,4 +180,28 @@ router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
+
+/* -------------------------------------------------------------------------- */
+/* 🧩 POST /api/products/by-ids - fetch specific products by ID list          */
+/* -------------------------------------------------------------------------- */
+router.post("/by-ids", async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "Invalid or missing product IDs" });
+    }
+
+    const products = await prisma.product.findMany({
+      where: { id: { in: ids } },
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error("❌ Error fetching products by IDs:", error);
+    res.status(500).json({ error: "Failed to fetch products by IDs" });
+  }
+});
+
+
 export default router;

@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.js";
 import orderRoutes from "./routes/order.js";
 import categoryRoutes from "./routes/category.js";
 import userRoutes from "./routes/user.js";
+import homepageSectionsRouter from "./routes/homepageSections.js";
 
 dotenv.config();
 
@@ -27,6 +28,8 @@ app.use("/api/products",productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", userRoutes); // GET /api/admin/users
+app.use("/api/homepage-sections", homepageSectionsRouter);
+
 
 
 // Start server

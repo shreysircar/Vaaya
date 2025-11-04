@@ -6,6 +6,7 @@ import ProductCard, { Product } from "@/components/ProductCard";
 import { motion, AnimatePresence, animate } from "framer-motion";
 import { Poppins } from "next/font/google";
 import FollowUsInfoSection from "@/components/FollowUsInfoSection";
+import DynamicHomepageSection from "@/components/DynamicHomepageSection"; // ✅ added
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700"] });
 
@@ -49,6 +50,9 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // ✅ NEW: dynamic homepage sections
+  const [homepageSections, setHomepageSections] = useState<any[]>([]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -103,6 +107,22 @@ export default function HomePage() {
     fetchProducts();
   }, []);
 
+  // ✅ Fetch homepage sections dynamically
+  useEffect(() => {
+    const fetchSections = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/homepage-sections`);
+        if (!res.ok) throw new Error("Failed to fetch homepage sections");
+        const data = await res.json();
+        const active = data.filter((s: any) => s.isActive);
+        setHomepageSections(active);
+      } catch (error) {
+        console.error("Error fetching homepage sections:", error);
+      }
+    };
+    fetchSections();
+  }, []);
+
   const handlePrev = () =>
     setActiveIndex((prev) => (prev - 1 + bannerSlides.length) % bannerSlides.length);
   const handleNext = () =>
@@ -111,10 +131,8 @@ export default function HomePage() {
   return (
     <div className={`min-h-screen bg-white ${poppins.className}`}>
       <div className="space-y-20 pt-0 pb-10">
-
         {/* --- HERO BANNER --- */}
-      <section className="relative w-full overflow-hidden shadow-md h-[420px] md:h-[520px]">
-
+        <section className="relative w-full overflow-hidden shadow-md h-[420px] md:h-[520px]">
           {bannerSlides.map((slide, index) => (
             <motion.div
               key={slide.id}
@@ -209,12 +227,24 @@ export default function HomePage() {
           className="max-w-7xl mx-auto px-4 py-12 rounded-xl relative"
           style={{ backgroundColor: OFF_WHITE }}
         >
-          <h2
-            className="text-3xl font-extrabold mb-8 tracking-tight border-b border-gray-200 pb-3"
-            style={{ color: DEEP_CHARCOAL }}
-          >
-            Best Sellers This Week
-          </h2>
+     <div className="text-center mb-12">
+  <h2
+    className="text-3xl md:text-4xl font-bold tracking-tight mb-3"
+    style={{ color: DEEP_CHARCOAL }}
+  >
+    Our Collections
+  </h2>
+
+  <p className="text-lg text-gray-700 mb-3">
+    Explore our handpicked furniture and décor collections crafted to perfection.
+  </p>
+
+  <div
+    className="mx-auto mt-3 h-[3px] w-24 rounded-full"
+    style={{ backgroundColor: DEEP_BLUE }}
+  ></div>
+</div>
+
 
           {loading ? (
             <p className="text-center text-gray-500">Loading products...</p>
@@ -242,7 +272,6 @@ export default function HomePage() {
               >
                 {products.map((product) => (
                   <div key={product.id} className="flex-shrink-0 w-64 text-sm">
-                    {/* Small font for product card */}
                     <ProductCard product={product} />
                   </div>
                 ))}
@@ -251,9 +280,13 @@ export default function HomePage() {
           )}
         </section>
 
+        {/* ✅ DYNAMIC SECTIONS (Featured, Trending, Brand Story) */}
+        {homepageSections.map((section) => (
+          <DynamicHomepageSection key={section.id} section={section} />
+        ))}
 
-              {/* Static Info + Follow Section */}
-      <FollowUsInfoSection />
+        {/* ✅ Static Follow Us Section (unchanged) */}
+        <FollowUsInfoSection />
       </div>
     </div>
   );

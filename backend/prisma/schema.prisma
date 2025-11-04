@@ -40,13 +40,15 @@ model User {
 // 🧩 Categories setup
 
 model ParentCategory {
-  id            String        @id @default(cuid())
-  name          String        @unique
-  description   String?
-  subcategories SubCategory[]
-  products      Product[]     @relation("ParentCategoryToProducts")
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id               String            @id @default(cuid())
+  name             String            @unique
+  description      String?
+  imageUrl         String?
+  subcategories    SubCategory[]
+  products         Product[]         @relation("ParentCategoryToProducts")
+  homepageSections HomepageSection[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model SubCategory {
@@ -76,4 +78,22 @@ model Product {
   parentCategory   ParentCategory @relation("ParentCategoryToProducts", fields: [parentCategoryId], references: [id], onDelete: Cascade)
   subCategory      SubCategory    @relation("SubCategoryToProducts", fields: [subCategoryId], references: [id], onDelete: Cascade)
   orderItems       OrderItem[]
+}
+
+model HomepageSection {
+  id               String          @id @default(cuid())
+  type             String // "featured_categories", "highlighted_category", "trending_products", "brand_story"
+  heading          String?
+  subheading       String?
+  description      String?
+  imageUrl         String?
+  imageUrls        String[]
+  linkedCategoryId String?
+  linkedCategory   ParentCategory? @relation(fields: [linkedCategoryId], references: [id], onDelete: SetNull)
+  linkedProductIds String[]
+  categoryIds      String[]
+  orderIndex       Int             @default(0)
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 }

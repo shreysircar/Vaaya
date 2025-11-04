@@ -56,11 +56,11 @@ router.get("/sub", async (req, res) => {
 /* -------------------------------------------------------------------------- */
 /*
   Example:
-  { "name": "Electronics" }                       -> Parent Category
-  { "name": "Laptops", "parentCategoryId": "xyz"} -> SubCategory
+  { "name": "Electronics", "imageUrl": "https://..." }  -> Parent Category
+  { "name": "Laptops", "parentCategoryId": "xyz" }      -> SubCategory
 */
 router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
-  const { name, parentCategoryId, description } = req.body;
+  const { name, parentCategoryId, description, imageUrl } = req.body; // ✅ added imageUrl
   if (!name) return res.status(400).json({ message: "Name is required" });
 
   try {
@@ -79,7 +79,7 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
     } else {
       // 🧩 Create ParentCategory
       const parent = await prisma.parentCategory.create({
-        data: { name, description: description || "" },
+        data: { name, description: description || "", imageUrl: imageUrl || null }, // ✅ added
       });
       return res.status(201).json(parent);
     }
@@ -99,7 +99,7 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
 /* -------------------------------------------------------------------------- */
 router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { name, description, parentCategoryId } = req.body;
+  const { name, description, parentCategoryId, imageUrl } = req.body; // ✅ added imageUrl
 
   try {
     let updated;
@@ -120,7 +120,7 @@ router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
       // 🧩 Update ParentCategory
       updated = await prisma.parentCategory.update({
         where: { id },
-        data: { name, description },
+        data: { name, description, imageUrl: imageUrl || null }, // ✅ added
       });
     }
 
