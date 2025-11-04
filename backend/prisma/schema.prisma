@@ -70,7 +70,8 @@ model Product {
   description      String
   price            Float
   stock            Int
-  imageUrl         String?
+  imageUrl         String?        // existing single main image
+  imageUrls        String[]       @default([]) // NEW: array of image URLs
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   parentCategoryId String
@@ -79,6 +80,7 @@ model Product {
   subCategory      SubCategory    @relation("SubCategoryToProducts", fields: [subCategoryId], references: [id], onDelete: Cascade)
   orderItems       OrderItem[]
 }
+
 
 model HomepageSection {
   id               String          @id @default(cuid())

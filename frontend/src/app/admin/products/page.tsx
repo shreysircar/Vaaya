@@ -10,6 +10,7 @@ interface Product {
   price: number;
   stock: number;
   imageUrl: string;
+  imageUrls?: string[]; // ✅ NEW
   parentCategoryId?: string;
   subCategoryId?: string;
   parentCategory?: { name: string };
@@ -41,6 +42,7 @@ export default function AdminProducts() {
     parentCategoryId: "",
     subCategoryId: "",
     imageUrl: "",
+    imageUrls: [] as string[], // ✅ NEW
   });
 
   const token =
@@ -107,6 +109,7 @@ export default function AdminProducts() {
       parentCategoryId: "",
       subCategoryId: "",
       imageUrl: "",
+      imageUrls: [], // ✅ reset
     });
     setSelectedCategoryId("");
     setModalOpen(true);
@@ -115,7 +118,6 @@ export default function AdminProducts() {
   const openEditModal = (product: Product) => {
     setEditingProduct(product);
 
-    // Find parent category for this product
     let parentId = product.parentCategoryId || "";
     if (!parentId) {
       for (const cat of categories) {
@@ -136,6 +138,7 @@ export default function AdminProducts() {
       parentCategoryId: parentId,
       subCategoryId: product.subCategoryId || "",
       imageUrl: product.imageUrl || "",
+      imageUrls: product.imageUrls || [], // ✅ populate existing URLs
     });
     setModalOpen(true);
   };
@@ -150,29 +153,29 @@ export default function AdminProducts() {
         ? `${API_URL}/api/products/${editingProduct.id}`
         : `${API_URL}/api/products`;
 
-const res = await fetch(url, {
-  method,
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  },
-  body: JSON.stringify({
-    name: formData.name,
-    description: formData.description,
-    price: formData.price,
-    stock: formData.stock,
-    parentCategoryId: selectedCategoryId,
-    subCategoryId: formData.subCategoryId,
-    imageUrl: formData.imageUrl,
-  }),
-});
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          stock: formData.stock,
+          parentCategoryId: selectedCategoryId,
+          subCategoryId: formData.subCategoryId,
+          imageUrl: formData.imageUrl,
+          imageUrls: formData.imageUrls, // ✅ send to backend
+        }),
+      });
 
-if (!res.ok) {
-  const errorText = await res.text();
-  console.error("❌ API Error:", res.status, errorText);
-  throw new Error("Failed to save product");
-}
-
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ API Error:", res.status, errorText);
+        throw new Error("Failed to save product");
+      }
 
       setModalOpen(false);
       fetchProducts();
@@ -185,6 +188,26 @@ if (!res.ok) {
   const selectedCategory = categories.find(
     (c) => c.id === selectedCategoryId
   );
+
+  /* ✅ Helpers for handling multiple image URLs */
+  const addImageUrlField = () => {
+    setFormData({
+      ...formData,
+      imageUrls: [...formData.imageUrls, ""],
+    });
+  };
+
+  const removeImageUrlField = (index: number) => {
+    const updated = [...formData.imageUrls];
+    updated.splice(index, 1);
+    setFormData({ ...formData, imageUrls: updated });
+  };
+
+  const updateImageUrlField = (index: number, value: string) => {
+    const updated = [...formData.imageUrls];
+    updated[index] = value;
+    setFormData({ ...formData, imageUrls: updated });
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -276,12 +299,13 @@ if (!res.ok) {
 
       {modalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-md w-96">
+          <div className="bg-white p-6 rounded-lg shadow-md w-96 max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">
               {editingProduct ? "Edit Product" : "Add Product"}
             </h2>
 
             <form onSubmit={handleFormSubmit} className="space-y-3 text-sm">
+              {/* Existing fields remain unchanged */}
               <div>
                 <label className="block mb-1 font-medium">Name</label>
                 <input
@@ -383,17 +407,52 @@ if (!res.ok) {
                 </select>
               </div>
 
+              {/* Existing single image input */}
               <div>
-                <label className="block mb-1 font-medium">Image URL</label>
+                <label className="block mb-1 font-medium">Main Image URL</label>
                 <input
                   type="text"
-                  placeholder="Image URL"
+                  placeholder="Main Image URL"
                   value={formData.imageUrl}
                   onChange={(e) =>
                     setFormData({ ...formData, imageUrl: e.target.value })
                   }
                   className="w-full border px-2 py-1 rounded"
                 />
+              </div>
+
+              {/* ✅ NEW: Multiple Image URLs */}
+              <div>
+                <label className="block mb-1 font-medium">
+                  Additional Image URLs
+                </label>
+                {formData.imageUrls.map((url, idx) => (
+                  <div key={idx} className="flex items-center mb-2 space-x-2">
+                    <input
+                      type="text"
+                      placeholder={`Image URL ${idx + 1}`}
+                      value={url}
+                      onChange={(e) =>
+                        updateImageUrlField(idx, e.target.value)
+                      }
+                      className="w-full border px-2 py-1 rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImageUrlField(idx)}
+                      className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addImageUrlField}
+                  className="mt-1 text-blue-600 text-xs hover:underline"
+                >
+                  + Add another image
+                </button>
               </div>
 
               <div className="flex justify-end space-x-2 mt-3">

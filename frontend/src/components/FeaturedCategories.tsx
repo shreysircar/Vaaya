@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion"; // ✅ added
 
 const DEEP_CHARCOAL = "#292524";
 const MUSTARD_LIGHT = "#dec08a";
@@ -70,16 +71,30 @@ export default function FeaturedCategories({ section: passedSection }: FeaturedC
     fetchData();
   }, [passedSection]);
 
-  if (loading) return <p className="text-center py-12 text-gray-500">Loading featured categories...</p>;
+  if (loading)
+    return <p className="text-center py-12 text-gray-500">Loading featured categories...</p>;
   if (error) return <p className="text-center py-12 text-red-500">{error}</p>;
   if (!section || categories.length === 0) return null;
 
   return (
-    <section className="w-full py-16 px-6 md:px-16 border-t border-gray-100 bg-white">
-      <div className="text-center mb-12">
+    <motion.section
+      className="w-full py-16 px-6 md:px-16 border-t border-gray-100 bg-white"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true, amount: 0.2 }}
+    >
+      {/* Heading */}
+      <motion.div
+        className="text-center mb-12"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        viewport={{ once: true }}
+      >
         {section.heading && (
           <h2
-            className="text-3xl md:text-4xl font-bold mb-2 tracking-tight" 
+            className="text-3xl md:text-4xl font-bold mb-2 tracking-tight"
             style={{ color: DEEP_CHARCOAL }}
           >
             {section.heading}
@@ -90,17 +105,34 @@ export default function FeaturedCategories({ section: passedSection }: FeaturedC
           <p className="text-lg text-gray-600 mb-3">{section.subheading}</p>
         )}
 
-        {/* Mustard underline — below heading & subheading */}
+        {/* Mustard underline */}
         <div
           className="mx-auto mt-2 h-[3px] w-24 rounded-full"
           style={{ backgroundColor: MUSTARD_LIGHT }}
         ></div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
+      {/* Category Cards with staggered reveal */}
+      <motion.div
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-7xl mx-auto"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={{
+          hidden: {},
+          visible: {
+            transition: { staggerChildren: 0.15, delayChildren: 0.3 },
+          },
+        }}
+      >
         {categories.map((cat) => (
-          <div
+          <motion.div
             key={cat.id}
+            variants={{
+              hidden: { opacity: 0, y: 40 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="relative group overflow-hidden rounded-2xl cursor-pointer border border-gray-100 hover:shadow-lg transition-all duration-300"
             onClick={() => router.push(`/shop?category=${cat.id}`)}
           >
@@ -122,9 +154,9 @@ export default function FeaturedCategories({ section: passedSection }: FeaturedC
                 style={{ backgroundColor: MUSTARD_LIGHT }}
               ></div>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }

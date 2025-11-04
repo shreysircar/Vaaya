@@ -50,10 +50,7 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // ✅ NEW: dynamic homepage sections
   const [homepageSections, setHomepageSections] = useState<any[]>([]);
-
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const smoothScroll = (distance: number) => {
@@ -103,11 +100,9 @@ export default function HomePage() {
         setLoading(false);
       }
     };
-
     fetchProducts();
   }, []);
 
-  // ✅ Fetch homepage sections dynamically
   useEffect(() => {
     const fetchSections = async () => {
       try {
@@ -215,7 +210,8 @@ export default function HomePage() {
                   index === activeIndex ? "scale-110 shadow-md" : "opacity-70"
                 }`}
                 style={{
-                  backgroundColor: index === activeIndex ? DEEP_CHARCOAL : "rgba(255,255,255,0.7)",
+                  backgroundColor:
+                    index === activeIndex ? DEEP_CHARCOAL : "rgba(255,255,255,0.7)",
                 }}
               />
             ))}
@@ -223,35 +219,49 @@ export default function HomePage() {
         </section>
 
         {/* --- HORIZONTAL SCROLL BEST SELLERS --- */}
-        <section
+        <motion.section
           className="max-w-7xl mx-auto px-4 py-12 rounded-xl relative"
           style={{ backgroundColor: OFF_WHITE }}
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          viewport={{ once: true, amount: 0.25 }}
         >
-     <div className="text-center mb-12">
-  <h2
-    className="text-3xl md:text-4xl font-bold tracking-tight mb-3"
-    style={{ color: DEEP_CHARCOAL }}
-  >
-    Our Collections
-  </h2>
+          <div className="text-center mb-12">
+            <h2
+              className="text-3xl md:text-4xl font-bold tracking-tight mb-3"
+              style={{ color: DEEP_CHARCOAL }}
+            >
+              Our Collections
+            </h2>
 
-  <p className="text-lg text-gray-700 mb-3">
-    Explore our handpicked furniture and décor collections crafted to perfection.
-  </p>
+            <p className="text-lg text-gray-700 mb-3">
+              Explore our handpicked furniture and décor collections crafted to perfection.
+            </p>
 
-  <div
-    className="mx-auto mt-3 h-[3px] w-24 rounded-full"
-    style={{ backgroundColor: DEEP_BLUE }}
-  ></div>
-</div>
-
+            <div
+              className="mx-auto mt-3 h-[3px] w-24 rounded-full"
+              style={{ backgroundColor: DEEP_BLUE }}
+            ></div>
+          </div>
 
           {loading ? (
             <p className="text-center text-gray-500">Loading products...</p>
           ) : error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <div className="relative">
+            <motion.div
+              className="relative"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: { staggerChildren: 0.15, delayChildren: 0.2 },
+                },
+              }}
+            >
               <button
                 onClick={handlePrevScroll}
                 className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center"
@@ -265,27 +275,40 @@ export default function HomePage() {
                 ❯
               </button>
 
-              <div
+              <motion.div
                 ref={scrollRef}
                 className="flex gap-6 overflow-x-hidden px-12"
                 style={{ scrollBehavior: "smooth" }}
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               >
                 {products.map((product) => (
-                  <div key={product.id} className="flex-shrink-0 w-64 text-sm">
+                  <motion.div
+                    key={product.id}
+                    variants={{
+                      hidden: { opacity: 0, y: 40 },
+                      visible: { opacity: 1, y: 0 },
+                    }}
+                    transition={{ duration: 0.5 }}
+                    className="flex-shrink-0 w-64 text-sm"
+                  >
                     <ProductCard product={product} />
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
-        </section>
+        </motion.section>
 
-        {/* ✅ DYNAMIC SECTIONS (Featured, Trending, Brand Story) */}
+        {/* ✅ Dynamic Sections */}
         {homepageSections.map((section) => (
           <DynamicHomepageSection key={section.id} section={section} />
         ))}
 
-        {/* ✅ Static Follow Us Section (unchanged) */}
+        {/* ✅ Static Follow Us Section */}
         <FollowUsInfoSection />
       </div>
     </div>

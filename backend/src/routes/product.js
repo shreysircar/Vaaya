@@ -61,6 +61,7 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
       parentCategoryId,
       subCategoryId,
       imageUrl,
+      imageUrls, // ✅ NEW FIELD
     } = req.body;
 
     if (!name || !price || !stock || !parentCategoryId || !subCategoryId) {
@@ -97,6 +98,7 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
         parentCategoryId,
         subCategoryId,
         imageUrl: imageUrl || null,
+        imageUrls: Array.isArray(imageUrls) ? imageUrls : [], // ✅ safe fallback
       },
     });
 
@@ -120,6 +122,7 @@ router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
       parentCategoryId,
       subCategoryId,
       imageUrl,
+      imageUrls, // ✅ NEW FIELD
     } = req.body;
 
     if (!parentCategoryId || !subCategoryId)
@@ -155,6 +158,7 @@ router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
         parentCategoryId,
         subCategoryId,
         imageUrl,
+        imageUrls: Array.isArray(imageUrls) ? imageUrls : undefined, // ✅ optional safe update
       },
     });
 
@@ -180,7 +184,6 @@ router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
-
 /* -------------------------------------------------------------------------- */
 /* 🧩 POST /api/products/by-ids - fetch specific products by ID list          */
 /* -------------------------------------------------------------------------- */
@@ -202,6 +205,5 @@ router.post("/by-ids", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch products by IDs" });
   }
 });
-
 
 export default router;

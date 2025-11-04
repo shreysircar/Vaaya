@@ -40,11 +40,15 @@ export default function TrendingProducts({ section }: TrendingProductsProps) {
   if (!products.length) return null;
 
   return (
-    <section
+    <motion.section
       className="relative w-full py-20 px-6 md:px-16 overflow-hidden"
       style={{
         background: `linear-gradient(135deg, ${DEEP_BLUE}19 0%, ${OFF_WHITE} 90%)`,
       }}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true, amount: 0.25 }}
     >
       {/* 🔵 Background Accent Circle */}
       <div
@@ -52,8 +56,14 @@ export default function TrendingProducts({ section }: TrendingProductsProps) {
         style={{ backgroundColor: DEEP_BLUE }}
       ></div>
 
-      {/* 🧭 Section Heading (unified format) */}
-      <div className="text-center mb-14 relative z-10">
+      {/* 🧭 Section Heading (unified format + motion fade-in) */}
+      <motion.div
+        className="text-center mb-14 relative z-10"
+        initial={{ opacity: 0, y: 25 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        viewport={{ once: true }}
+      >
         <h2
           className="text-3xl md:text-4xl font-bold tracking-tight mb-3"
           style={{
@@ -69,47 +79,44 @@ export default function TrendingProducts({ section }: TrendingProductsProps) {
           </p>
         )}
 
-        {/* Unified mustard underline */}
+        {/* Unified underline */}
         <div
           className="mx-auto mt-3 h-[3px] w-24 rounded-full"
           style={{ backgroundColor: DEEP_BLUE }}
         ></div>
-      </div>
+      </motion.div>
 
-      {/* 🪄 Product Cards */}
+      {/* 🪄 Product Cards with staggered reveal */}
       <motion.div
         className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-7xl mx-auto relative z-10"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
         variants={{
-          hidden: { opacity: 0, y: 30 },
+          hidden: {},
           visible: {
-            opacity: 1,
-            y: 0,
-            transition: { staggerChildren: 0.15, duration: 0.6 },
+            transition: { staggerChildren: 0.15, delayChildren: 0.3 },
           },
         }}
       >
-        {products.map((p, index) => (
+        {products.map((p) => (
           <motion.div
             key={p.id}
             variants={{
-              hidden: { opacity: 0, y: 30 },
+              hidden: { opacity: 0, y: 40 },
               visible: { opacity: 1, y: 0 },
             }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             whileHover={{
               scale: 1.05,
               boxShadow: `0 10px 25px -8px ${DEEP_BLUE}80`,
             }}
-            transition={{ duration: 0.3 }}
             className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-gray-100"
           >
             <ProductCard product={p} />
           </motion.div>
         ))}
       </motion.div>
-
-    </section>
+    </motion.section>
   );
 }

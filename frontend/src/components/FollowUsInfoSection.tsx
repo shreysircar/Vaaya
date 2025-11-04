@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Truck, Headset, CheckCircle, Hammer } from "lucide-react";
 
 const DEEP_CHARCOAL = "#292524";
@@ -31,39 +32,45 @@ export default function FollowUsInfoSection() {
   ];
 
   return (
-    <section
+    <motion.section
       className="w-full py-16 px-6 md:px-16 border-t border-gray-200 relative overflow-hidden"
       style={{ backgroundColor: PURE_WHITE }}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true, amount: 0.25 }}
     >
-{/* 🌊 Enhanced Dual-Layer Wave Divider at Top */}
-<div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180">
-  <svg
-    viewBox="0 0 1200 120"
-    preserveAspectRatio="none"
-    className="relative block w-[calc(100%+1.3px)] h-[90px]"
-  >
-    {/* Lighter base wave */}
-    <path
-      d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82-16.5,168.57-17.14,250.45.39,
-      110,23.34,219.81,60.44,330.43,66.33,68.17,3.64,
-      136.64-8.43,201.73-30.37V120H0V16.81
-      C91.9,43.83,208.41,67.25,321.39,56.44Z"
-      fill={MUSTARD_LIGHT}
-      fillOpacity="0.18"
-    ></path>
-
-    {/* Slightly darker overlay wave for depth */}
-    <path
-      d="M0,67.6C150,120,400,100,600,60s400-40,600,10V120H0Z"
-      fill={MUSTARD_LIGHT}
-      fillOpacity="0.3"
-    ></path>
-  </svg>
-</div>
-
+      {/* 🌊 Enhanced Dual-Layer Wave Divider at Top */}
+      <div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180">
+        <svg
+          viewBox="0 0 1200 120"
+          preserveAspectRatio="none"
+          className="relative block w-[calc(100%+1.3px)] h-[90px]"
+        >
+          <path
+            d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82-16.5,168.57-17.14,250.45.39,
+            110,23.34,219.81,60.44,330.43,66.33,68.17,3.64,
+            136.64-8.43,201.73-30.37V120H0V16.81
+            C91.9,43.83,208.41,67.25,321.39,56.44Z"
+            fill={MUSTARD_LIGHT}
+            fillOpacity="0.18"
+          ></path>
+          <path
+            d="M0,67.6C150,120,400,100,600,60s400-40,600,10V120H0Z"
+            fill={MUSTARD_LIGHT}
+            fillOpacity="0.3"
+          ></path>
+        </svg>
+      </div>
 
       {/* Follow Us + Tagline */}
-      <div className="text-center mb-12 mt-8 relative z-10">
+      <motion.div
+        className="text-center mb-12 mt-8 relative z-10"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        viewport={{ once: true }}
+      >
         <p className="text-lg" style={{ color: DEEP_CHARCOAL }}>
           Follow us at
         </p>
@@ -79,13 +86,29 @@ export default function FollowUsInfoSection() {
         >
           “Seriously Wow.”
         </p>
-      </div>
+      </motion.div>
 
-      {/* Horizontal Info Blocks */}
-      <div className="flex flex-col md:flex-row justify-between items-stretch gap-6 overflow-x-auto scrollbar-hide relative z-10">
+      {/* Horizontal Info Blocks (with staggered animation) */}
+      <motion.div
+        className="flex flex-col md:flex-row justify-between items-stretch gap-6 overflow-x-auto scrollbar-hide relative z-10"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={{
+          hidden: {},
+          visible: {
+            transition: { staggerChildren: 0.15, delayChildren: 0.2 },
+          },
+        }}
+      >
         {infoCards.map((card, index) => (
-          <div
+          <motion.div
             key={index}
+            variants={{
+              hidden: { opacity: 0, y: 40 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col justify-center items-center text-center bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 p-6 min-w-[250px] md:flex-1"
           >
             <div className="mb-3 group-hover:scale-110">{card.icon}</div>
@@ -96,19 +119,25 @@ export default function FollowUsInfoSection() {
               {card.title}
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">{card.desc}</p>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Brand Statement */}
-      <div className="text-center mt-14 max-w-2xl mx-auto relative z-10">
+      <motion.div
+        className="text-center mt-14 max-w-2xl mx-auto relative z-10"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        viewport={{ once: true }}
+      >
         <p
           className="italic text-base md:text-lg leading-relaxed"
           style={{ color: DEEP_CHARCOAL }}
         >
           "We are obsessed with the honest union of iron and wood, uncompromising in the style, quality, and integrity of every piece we forge."
         </p>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }

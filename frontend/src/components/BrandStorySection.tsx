@@ -37,11 +37,15 @@ export default function BrandStorySection({ section }: BrandStorySectionProps) {
   }, [images]);
 
   return (
-    <section
+    <motion.section
       className="relative py-20 md:py-24 overflow-x-hidden"
       style={{
         background: `linear-gradient(135deg, ${OFF_WHITE} 0%, ${DEEP_BLUE}08 100%)`,
       }}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true, amount: 0.25 }}
     >
       {/* Decorative subtle gradient blob */}
       <div
@@ -49,9 +53,28 @@ export default function BrandStorySection({ section }: BrandStorySectionProps) {
         style={{ backgroundColor: MUSTARD_LIGHT }}
       ></div>
 
-      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-14 px-6 md:px-12 items-center relative z-10">
+      {/* Grid layout */}
+      <motion.div
+        className="max-w-7xl mx-auto grid md:grid-cols-2 gap-14 px-6 md:px-12 items-center relative z-10"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={{
+          hidden: {},
+          visible: {
+            transition: { staggerChildren: 0.2, delayChildren: 0.2 },
+          },
+        }}
+      >
         {/* Left Image Section */}
-        <div className="relative overflow-hidden rounded-2xl shadow-sm border border-gray-100 w-full h-[400px] md:h-[460px] bg-white">
+        <motion.div
+          variants={{
+            hidden: { opacity: 0, y: 40 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-2xl shadow-sm border border-gray-100 w-full h-[400px] md:h-[460px] bg-white"
+        >
           {images.length > 0 ? (
             images.map((img: string, index: number) => (
               <motion.img
@@ -89,14 +112,15 @@ export default function BrandStorySection({ section }: BrandStorySectionProps) {
               ))}
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Right Text Section */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          viewport={{ once: true }}
+          variants={{
+            hidden: { opacity: 0, y: 40 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="relative text-center md:text-left"
         >
           {/* Unified Heading */}
@@ -127,7 +151,7 @@ export default function BrandStorySection({ section }: BrandStorySectionProps) {
               "At Vaaya, every piece is designed with passion and crafted to perfection. We blend heritage craftsmanship with modern design to create something truly timeless."}
           </p>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Subtle bottom fade */}
       <div
@@ -136,6 +160,6 @@ export default function BrandStorySection({ section }: BrandStorySectionProps) {
           background: `linear-gradient(to top, ${OFF_WHITE} 40%, transparent 100%)`,
         }}
       ></div>
-    </section>
+    </motion.section>
   );
 }
