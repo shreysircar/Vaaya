@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ProductCard, { Product } from "@/components/ProductCard";
 import { motion, AnimatePresence, animate } from "framer-motion";
 import { Poppins } from "next/font/google";
+import FollowUsInfoSection from "@/components/FollowUsInfoSection";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700"] });
 
@@ -249,6 +250,10 @@ export default function HomePage() {
             </div>
           )}
         </section>
+
+
+              {/* Static Info + Follow Section */}
+      <FollowUsInfoSection />
       </div>
     </div>
   );
