@@ -130,12 +130,12 @@ export default function Navbar() {
         <div className="w-20"></div>
 
 {/* Centered Logo */}
-<div className="absolute left-0 right-0 flex justify-center translate-y-[10px] logo-wrapper">
+<div className="absolute left-0 right-0 flex justify-center translate-y-[1px] logo-wrapper">
   <Image
-    src="/logo.svg"
+    src="/logo1.svg"
     alt="Amazon Clone Logo"
-    width={120}
-    height={40}
+    width={100}
+    height={50}
     className="cursor-pointer hover:scale-105 transition-transform"
     onClick={() => router.push("/")}
     priority
