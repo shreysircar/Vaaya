@@ -5,26 +5,80 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
-
 // === ICONS ===
+const baseIconClasses =
+  "transition-colors duration-300 ease-out group-hover:text-[#81bdc9] group-hover:scale-105";
+
 const SearchIcon = () => (
-  <svg className="w-6 h-6 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  <svg
+    className={`w-6 h-6 stroke-2 ${baseIconClasses}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+    />
   </svg>
 );
+
 const XIcon = () => (
-  <svg className="w-6 h-6 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    className={`w-6 h-6 stroke-2 ${baseIconClasses}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
+
 const UserIcon = () => (
-  <svg className="w-6 h-6 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  <svg
+    className={`w-6 h-6 stroke-2 ${baseIconClasses}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+    />
   </svg>
 );
+
+const WishlistIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2.2}
+    className={`w-[22px] h-[22px] block ${baseIconClasses}`}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.35 6.35 0 0116.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+    />
+  </svg>
+);
+
 const CartIcon = () => (
-  <svg className="w-6 h-6 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+  <svg
+    className={`w-6 h-6 stroke-2 ${baseIconClasses}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+    />
   </svg>
 );
 
@@ -86,8 +140,11 @@ export default function Navbar() {
 
     if (user) {
       return (
-        <div className="relative" ref={dropdownRef}>
-          <button onClick={() => setOpen(!open)} className="hover:text-gray-600 transition p-1 flex items-center">
+        <div className="relative group" ref={dropdownRef}>
+          <button
+            onClick={() => setOpen(!open)}
+            className="hover:text-[#ba9d5d] transition p-1 flex items-center justify-center"
+          >
             <UserIcon />
           </button>
           {open && (
@@ -116,7 +173,7 @@ export default function Navbar() {
 
     return (
       <div className="hidden sm:flex space-x-4 text-base font-medium">
-        <a href="/login" className="text-gray-700 hover:text-gray-900 transition">
+        <a href="/login" className="text-gray-700 hover:text-[#ba9d5d] transition">
           Sign In
         </a>
       </div>
@@ -129,34 +186,45 @@ export default function Navbar() {
       <div className="flex items-center justify-between h-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="w-20"></div>
 
-{/* Centered Logo */}
-<div className="absolute left-0 right-0 flex justify-center translate-y-[1px] logo-wrapper">
-  <Image
-    src="/logo1.svg"
-    alt="Amazon Clone Logo"
-    width={100}
-    height={50}
-    className="cursor-pointer hover:scale-105 transition-transform"
-    onClick={() => router.push("/")}
-    priority
-  />
-</div>
-
-
-
+        {/* Centered Logo */}
+        <div className="absolute left-0 right-0 flex justify-center translate-y-[1px] logo-wrapper">
+          <Image
+            src="/logo1.svg"
+            alt="Amazon Clone Logo"
+            width={100}
+            height={50}
+            className="cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => router.push("/")}
+            priority
+          />
+        </div>
 
         {/* Right: Icons */}
-        <div className="flex items-center space-x-5 text-gray-800 ml-auto">
+        <div className="flex items-center space-x-5 text-gray-800 ml-auto py-2">
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="hover:text-gray-600 transition p-1"
+            className="group hover:text-[#81bdc9] transition p-1 flex items-center justify-center"
             aria-label={showSearch ? "Close search" : "Open search"}
           >
             {showSearch ? <XIcon /> : <SearchIcon />}
           </button>
-          <a href="/cart" className="hover:text-gray-600 transition p-1 relative">
+
+          {/* ❤️ Wishlist */}
+          <a
+            href="/wishlist"
+            className="group hover:text-[#81bdc9] transition p-1 relative flex items-center justify-center"
+          >
+            <WishlistIcon />
+          </a>
+
+          {/* 🛒 Cart */}
+          <a
+            href="/cart"
+            className="group hover:text-[#81bdc9] transition p-1 relative flex items-center justify-center"
+          >
             <CartIcon />
           </a>
+
           <AuthButtons />
         </div>
       </div>
@@ -183,81 +251,77 @@ export default function Navbar() {
         </div>
       )}
 
-{/* === Category Bar === */}
-<nav className="bg-white border-t border-gray-100 font-[Inter]">
-
-
-  <ul className="flex items-center justify-center space-x-10 py-3 font-medium text-gray-800 text-[0.95rem] tracking-wide">
-    {categories.map((cat: any) => (
-      <li
-        key={cat.id}
-        className="group relative cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]"
-      >
-<span
-  className="relative flex items-center gap-1 px-2 py-1 font-[Poppins] text-gray-700 text-[0.9rem]
-  transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]
-  group-hover:text-[#ba9d5d] group-hover:drop-shadow-sm group-hover:scale-[1.03]"
->
-  {cat.name}
-  {/* ▼ arrow icon */}
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-    className="w-3.5 h-3.5 mt-[1px] transition-transform duration-300 group-hover:rotate-180"
-  >
-    <path
-      fillRule="evenodd"
-      d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-      clipRule="evenodd"
-    />
-  </svg>
-
-  {/* underline hover effect */}
-  <span
-    className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#8f7a43] via-[#ba9d5d] to-[#d8c27a]
-    group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
-  ></span>
-</span>
-
-
-        {/* 🔽 Full-width dropdown */}
-        {cat.subcategories?.length > 0 && (
-          <div
-            className="fixed left-0 top-[8rem] w-full bg-white/95 backdrop-blur-md border-t border-gray-100 
-            shadow-[0_8px_30px_rgba(0,0,0,0.08)] opacity-0 invisible group-hover:visible group-hover:opacity-100 
-            translate-y-3 group-hover:translate-y-0 transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] z-40"
-          >
-            <div className="max-w-7xl mx-auto px-10 py-10 grid grid-cols-5 gap-10">
-              {cat.subcategories.map((sub: any) => (
-                <div
-                  key={sub.id}
-                  className="transform transition-all duration-500 hover:scale-[1.04]"
+      {/* === Category Bar === */}
+      <nav className="bg-white border-t border-gray-100 font-[Inter]">
+        <ul className="flex items-center justify-center space-x-10 py-3 font-medium text-gray-800 text-[0.95rem] tracking-wide">
+          {categories.map((cat: any) => (
+            <li
+              key={cat.id}
+              className="group relative cursor-pointer transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]"
+            >
+              <span
+                className="relative flex items-center gap-1 px-2 py-1 font-[Poppins] text-gray-700 text-[0.9rem]
+                transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]
+                group-hover:text-[#81bdc9] group-hover:drop-shadow-sm group-hover:scale-[1.03]"
+              >
+                {cat.name}
+                {/* ▼ arrow icon */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="w-3.5 h-3.5 mt-[1px] transition-transform duration-300 group-hover:rotate-180"
                 >
-                  <h4 className="uppercase tracking-wider text-gray-900 font-semibold text-[0.75rem] mb-4 border-b border-gray-200 pb-2 font-[Inter]">
-                    {sub.name}
-                  </h4>
-                  <ul className="space-y-2">
-                    {sub.products?.map((p: any) => (
-                      <li
-                        key={p.id}
-                      className="text-gray-600 text-sm hover:text-[#8f7a43] hover:bg-[#f7f3e8]/90 px-2 py-1 rounded-md
-transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer hover:translate-x-1"
->
-                        {p.name}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </li>
-    ))}
-  </ul>
-</nav>
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
 
+                {/* underline hover effect */}
+                <span
+                  className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#8f7a43] via-[#ba9d5d] to-[#d8c27a]
+                  group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
+                ></span>
+              </span>
+
+              {/* 🔽 Full-width dropdown */}
+              {cat.subcategories?.length > 0 && (
+                <div
+                  className="fixed left-0 top-[8rem] w-full bg-white/95 backdrop-blur-md border-t border-gray-100 
+                  shadow-[0_8px_30px_rgba(0,0,0,0.08)] opacity-0 invisible group-hover:visible group-hover:opacity-100 
+                  translate-y-3 group-hover:translate-y-0 transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] z-40"
+                >
+                  <div className="max-w-7xl mx-auto px-10 py-10 grid grid-cols-5 gap-10">
+                    {cat.subcategories.map((sub: any) => (
+                      <div
+                        key={sub.id}
+                        className="transform transition-all duration-500 hover:scale-[1.04]"
+                      >
+                        <h4 className="uppercase tracking-wider text-gray-900 font-semibold text-[0.75rem] mb-4 border-b border-gray-200 pb-2 font-[Inter]">
+                          {sub.name}
+                        </h4>
+                        <ul className="space-y-2">
+                          {sub.products?.map((p: any) => (
+                            <li
+                              key={p.id}
+                              className="text-gray-600 text-sm hover:text-[#8f7a43] hover:bg-[#f7f3e8]/90 px-2 py-1 rounded-md
+                              transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer hover:translate-x-1"
+                            >
+                              {p.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </nav>
     </header>
   );
 }
