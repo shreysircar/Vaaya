@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "@/utils/api";
 
+interface ProductSpecification {
+  id?: string;
+  key: string;
+  value: string;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -10,11 +16,12 @@ interface Product {
   price: number;
   stock: number;
   imageUrl: string;
-  imageUrls?: string[]; // ✅ NEW
+  imageUrls?: string[];
   parentCategoryId?: string;
   subCategoryId?: string;
   parentCategory?: { name: string };
   subCategory?: { name: string };
+  specifications?: ProductSpecification[]; // ✅ Added
 }
 
 interface Subcategory {
@@ -34,6 +41,9 @@ export default function AdminProducts() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [specModalOpen, setSpecModalOpen] = useState(false);
+  const [currentProductId, setCurrentProductId] = useState<string | null>(null);
+  const [specifications, setSpecifications] = useState<ProductSpecification[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -42,7 +52,7 @@ export default function AdminProducts() {
     parentCategoryId: "",
     subCategoryId: "",
     imageUrl: "",
-    imageUrls: [] as string[], // ✅ NEW
+    imageUrls: [] as string[],
   });
 
   const token =
@@ -109,9 +119,10 @@ export default function AdminProducts() {
       parentCategoryId: "",
       subCategoryId: "",
       imageUrl: "",
-      imageUrls: [], // ✅ reset
+      imageUrls: [],
     });
     setSelectedCategoryId("");
+    setSpecifications([]); // ✅ reset specs
     setModalOpen(true);
   };
 
@@ -138,8 +149,11 @@ export default function AdminProducts() {
       parentCategoryId: parentId,
       subCategoryId: product.subCategoryId || "",
       imageUrl: product.imageUrl || "",
-      imageUrls: product.imageUrls || [], // ✅ populate existing URLs
+      imageUrls: product.imageUrls || [],
     });
+
+    setSpecifications(product.specifications || []); // ✅ preserve spec IDs
+
     setModalOpen(true);
   };
 
@@ -167,7 +181,12 @@ export default function AdminProducts() {
           parentCategoryId: selectedCategoryId,
           subCategoryId: formData.subCategoryId,
           imageUrl: formData.imageUrl,
-          imageUrls: formData.imageUrls, // ✅ send to backend
+          imageUrls: formData.imageUrls,
+          specifications: specifications.map((s) => ({
+            id: s.id, // ✅ include id if present
+            key: s.key,
+            value: s.value,
+          })),
         }),
       });
 
@@ -455,6 +474,58 @@ export default function AdminProducts() {
                 </button>
               </div>
 
+
+{/* ✅ Specifications Section */}
+<div className="mt-4">
+  <label className="block mb-1 font-medium">Specifications</label>
+  {specifications.map((spec, idx) => (
+    <div key={idx} className="flex items-center mb-2 space-x-2">
+      <input
+        type="text"
+        placeholder="Key (e.g. Material)"
+        value={spec.key}
+        onChange={(e) => {
+          const updated = [...specifications];
+          updated[idx].key = e.target.value;
+          setSpecifications(updated);
+        }}
+        className="w-1/2 border px-2 py-1 rounded"
+      />
+      <input
+        type="text"
+        placeholder="Value (e.g. Sheesham Wood)"
+        value={spec.value}
+        onChange={(e) => {
+          const updated = [...specifications];
+          updated[idx].value = e.target.value;
+          setSpecifications(updated);
+        }}
+        className="w-1/2 border px-2 py-1 rounded"
+      />
+      <button
+        type="button"
+        onClick={() =>
+          setSpecifications(specifications.filter((_, i) => i !== idx))
+        }
+        className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+      >
+        ✕
+      </button>
+    </div>
+  ))}
+  <button
+    type="button"
+    onClick={() =>
+      setSpecifications([...specifications, { key: "", value: "" }])
+    }
+    className="text-blue-600 text-xs hover:underline mt-1"
+  >
+    + Add another specification
+  </button>
+</div>
+
+
+
               <div className="flex justify-end space-x-2 mt-3">
                 <button
                   type="button"
@@ -475,5 +546,7 @@ export default function AdminProducts() {
         </div>
       )}
     </div>
+
+    
   );
 }

@@ -9,7 +9,7 @@ export default function CategoriesPage() {
   const [selectedParent, setSelectedParent] = useState<string>("");
   const [newParentName, setNewParentName] = useState("");
   const [newParentDesc, setNewParentDesc] = useState("");
-  const [newParentImageUrl, setNewParentImageUrl] = useState(""); // 🆕
+  const [newParentImageUrl, setNewParentImageUrl] = useState("");
   const [newSubName, setNewSubName] = useState("");
   const [newSubDesc, setNewSubDesc] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function CategoriesPage() {
   const [editingSub, setEditingSub] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
-  const [editImageUrl, setEditImageUrl] = useState(""); // 🆕 new edit field
+  const [editImageUrl, setEditImageUrl] = useState("");
 
   const API = "http://localhost:5000/api/categories";
 
@@ -48,7 +48,6 @@ export default function CategoriesPage() {
     fetchSubs();
   }, []);
 
-  /* 🧩 Add Parent Category */
   const handleAddParent = async () => {
     if (!newParentName.trim()) return alert("Enter a parent category name");
     setLoading(true);
@@ -59,13 +58,13 @@ export default function CategoriesPage() {
         {
           name: newParentName,
           description: newParentDesc,
-          imageUrl: newParentImageUrl || null, // 🆕 include imageUrl
+          imageUrl: newParentImageUrl || null,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNewParentName("");
       setNewParentDesc("");
-      setNewParentImageUrl(""); // 🆕 reset imageUrl field
+      setNewParentImageUrl("");
       fetchParents();
     } catch (err: any) {
       alert(err.response?.data?.message || "Error adding category");
@@ -74,7 +73,6 @@ export default function CategoriesPage() {
     }
   };
 
-  /* 🧩 Add Subcategory */
   const handleAddSub = async () => {
     if (!selectedParent) return alert("Select a parent category first");
     if (!newSubName.trim()) return alert("Enter subcategory name");
@@ -101,7 +99,6 @@ export default function CategoriesPage() {
     }
   };
 
-  /* ✏️ Update category or subcategory */
   const handleUpdate = async (
     id: string,
     type: "parent" | "sub",
@@ -116,7 +113,7 @@ export default function CategoriesPage() {
         {
           name: editName,
           description: editDesc,
-          ...(type === "parent" ? { imageUrl: editImageUrl || null } : {}), // 🆕
+          ...(type === "parent" ? { imageUrl: editImageUrl || null } : {}),
           ...(type === "sub" ? { parentCategoryId } : {}),
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -126,7 +123,7 @@ export default function CategoriesPage() {
       setEditingSub(null);
       setEditName("");
       setEditDesc("");
-      setEditImageUrl(""); // 🆕 reset
+      setEditImageUrl("");
 
       fetchParents();
       if (selectedParent) fetchSubs(selectedParent);
@@ -155,43 +152,84 @@ export default function CategoriesPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-bold text-gray-800">Manage Categories</h1>
 
-      {/* 🆕 Add Parent Category */}
-      <div className="p-4 bg-white rounded-xl shadow border space-y-3">
-        <h2 className="font-semibold text-gray-700">Add Parent Category</h2>
-        <input
-          type="text"
-          placeholder="Parent category name"
-          value={newParentName}
-          onChange={(e) => setNewParentName(e.target.value)}
-          className="border p-2 rounded w-full"
-        />
-        <input
-          type="text"
-          placeholder="Description (optional)"
-          value={newParentDesc}
-          onChange={(e) => setNewParentDesc(e.target.value)}
-          className="border p-2 rounded w-full"
-        />
-        <input
-          type="text"
-          placeholder="Image URL (optional)" // 🆕 image URL input
-          value={newParentImageUrl}
-          onChange={(e) => setNewParentImageUrl(e.target.value)}
-          className="border p-2 rounded w-full"
-        />
-        <button
-          onClick={handleAddParent}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          {loading ? "Adding..." : "Add Parent"}
-        </button>
+      {/* 🧩 Parent + Subcategory forms side by side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 🧩 Add Parent Category */}
+        <div className="p-4 bg-white rounded-xl shadow border space-y-3">
+          <h2 className="font-semibold text-gray-700">Add Parent Category</h2>
+          <input
+            type="text"
+            placeholder="Parent category name"
+            value={newParentName}
+            onChange={(e) => setNewParentName(e.target.value)}
+            className="border p-2 rounded w-full"
+          />
+          <input
+            type="text"
+            placeholder="Description (optional)"
+            value={newParentDesc}
+            onChange={(e) => setNewParentDesc(e.target.value)}
+            className="border p-2 rounded w-full"
+          />
+          <input
+            type="text"
+            placeholder="Image URL (optional)"
+            value={newParentImageUrl}
+            onChange={(e) => setNewParentImageUrl(e.target.value)}
+            className="border p-2 rounded w-full"
+          />
+          <button
+            onClick={handleAddParent}
+            disabled={loading}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            {loading ? "Adding..." : "Add Parent"}
+          </button>
+        </div>
+
+        {/* 🧩 Add Subcategory */}
+        <div className="p-4 bg-white rounded-xl shadow border space-y-3">
+          <h2 className="font-semibold text-gray-700">Add Subcategory</h2>
+
+          <select
+            value={selectedParent}
+            onChange={(e) => setSelectedParent(e.target.value)}
+            className="border p-2 rounded w-full"
+          >
+            <option value="">Select a parent category</option>
+            {parents.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="text"
+            placeholder="Subcategory name"
+            value={newSubName}
+            onChange={(e) => setNewSubName(e.target.value)}
+            className="border p-2 rounded w-full"
+          />
+          <input
+            type="text"
+            placeholder="Description (optional)"
+            value={newSubDesc}
+            onChange={(e) => setNewSubDesc(e.target.value)}
+            className="border p-2 rounded w-full"
+          />
+
+          <button
+            onClick={handleAddSub}
+            disabled={loading}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            {loading ? "Adding..." : "Add Subcategory"}
+          </button>
+        </div>
       </div>
 
-      {/* Parent Selector + Subcategory Logic (unchanged) */}
-      {/* ... existing code stays exactly as is ... */}
-
-      {/* 🆕 Show image URL field when editing parent */}
+      {/* 🧩 All Categories List */}
       <div className="p-4 bg-white rounded-xl shadow border">
         <h2 className="font-semibold text-gray-700 mb-4">All Categories</h2>
         {parents.length === 0 ? (
@@ -261,7 +299,7 @@ export default function CategoriesPage() {
                             setEditingParent(parent.id);
                             setEditName(parent.name);
                             setEditDesc(parent.description || "");
-                            setEditImageUrl(parent.imageUrl || ""); // 🆕 prefill
+                            setEditImageUrl(parent.imageUrl || "");
                           }}
                           className="text-blue-600 hover:text-blue-800"
                         >
@@ -278,11 +316,13 @@ export default function CategoriesPage() {
                   </div>
                 </div>
 
-                {/* Subcategories (unchanged) */}
                 {parent.subcategories?.length > 0 && (
                   <ul className="pl-6 mt-2 space-y-1 list-disc">
                     {parent.subcategories.map((sub: any) => (
-                      <li key={sub.id} className="flex justify-between items-center text-gray-700">
+                      <li
+                        key={sub.id}
+                        className="flex justify-between items-center text-gray-700"
+                      >
                         {editingSub === sub.id ? (
                           <div className="flex flex-col w-full mr-3">
                             <input
@@ -333,9 +373,7 @@ export default function CategoriesPage() {
                                 Edit
                               </button>
                               <button
-                                onClick={() =>
-                                  handleDelete(sub.id, "sub")
-                                }
+                                onClick={() => handleDelete(sub.id, "sub")}
                                 className="text-sm text-red-500 hover:text-red-700"
                               >
                                 Delete
