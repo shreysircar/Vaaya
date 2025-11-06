@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation"; // 🟢 added router import
 import { motion } from "framer-motion";
 import {
   ShoppingCart,
@@ -19,6 +19,10 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
+
 const DEEP_CHARCOAL = "#292524";
 const MUSTARD_LIGHT = "#dec08a";
 const DEEP_BLUE = "#4a9eb3";
@@ -27,6 +31,7 @@ const TEAL_DARK = "#014c57";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const router = useRouter(); // 🟢 added
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,6 +39,11 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"description" | "care" | "disclaimer">("description");
+
+  // 🟢 context hooks
+  const { addToCart } = useCart();
+  const { toggleWishlist } = useWishlist();
+  const { user } = useAuth();
 
   /* Fetch product */
   useEffect(() => {
@@ -59,18 +69,34 @@ export default function ProductDetailPage() {
     setIsWishlisted(saved.includes(id));
   }, [id]);
 
-  const toggleWishlist = () => {
-    if (!id) return;
-    const saved = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    let updated;
-    if (saved.includes(id)) {
-      updated = saved.filter((pid: string) => pid !== id);
-      setIsWishlisted(false);
-    } else {
-      updated = [...saved, id];
-      setIsWishlisted(true);
+  // 🟢 Updated wishlist handler
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      alert("Please log in to use Wishlist");
+      return;
     }
-    localStorage.setItem("wishlist", JSON.stringify(updated));
+    await toggleWishlist(String(id));
+    setIsWishlisted((prev) => !prev);
+  };
+
+  // 🟢 Add to cart logic
+  const handleAddToCart = async () => {
+    if (!user) {
+      alert("Please log in to add items to cart");
+      return;
+    }
+    await addToCart(String(id), quantity, product.price);
+    alert("✅ Added to cart successfully!");
+  };
+
+  // 🟢 Buy Now (add then go to checkout)
+  const handleBuyNow = async () => {
+    if (!user) {
+      alert("Please log in to continue to checkout");
+      return;
+    }
+    await addToCart(String(id), quantity, product.price);
+    router.push("/checkout");
   };
 
   const increaseQty = () => setQuantity((q) => q + 1);
@@ -101,8 +127,7 @@ export default function ProductDetailPage() {
       : [product.imageUrl || "/images/placeholder.jpg"];
 
   return (
-    <div className="bg-white text-[#292524] pb-10"> {/* ✅ Wrapper added here */}
-      {/* ✅ Removed items-center to eliminate black gap */}
+    <div className="bg-white text-[#292524] pb-10">
       <section className="min-h-screen bg-white flex justify-center py-20 px-6 md:px-16">
         <motion.div
           className="max-w-6xl w-full grid md:grid-cols-2 gap-10 bg-white"
@@ -112,14 +137,12 @@ export default function ProductDetailPage() {
         >
           {/* Left: Image Carousel */}
           <div className="relative w-full bg-white">
-            {/* Main Image */}
             <img
               src={images[currentImageIndex]}
               alt={product.name}
               className="w-full h-[500px] object-cover transition-all duration-500"
             />
 
-            {/* Centered Arrows */}
             {images.length > 1 && (
               <>
                 <button
@@ -137,9 +160,9 @@ export default function ProductDetailPage() {
               </>
             )}
 
-            {/* Wishlist Icon */}
+            {/* 🟢 Updated wishlist button */}
             <motion.button
-              onClick={toggleWishlist}
+              onClick={handleToggleWishlist}
               whileTap={{ scale: 0.9 }}
               className="absolute top-5 right-5 bg-white/80 backdrop-blur-sm rounded-full p-3 shadow-md hover:shadow-lg transition-all"
             >
@@ -152,7 +175,6 @@ export default function ProductDetailPage() {
               />
             </motion.button>
 
-            {/* Thumbnails */}
             {images.length > 1 && (
               <div className="flex justify-center gap-3 mt-4 py-3 bg-white border-t border-gray-100">
                 {images.map((img: string, idx: number) => (
@@ -248,8 +270,10 @@ export default function ProductDetailPage() {
                 "This handcrafted piece combines modern aesthetics with timeless craftsmanship, ensuring it becomes the centerpiece of your living space."}
             </p>
 
+            {/* 🟢 Cart & Buy buttons updated */}
             <div className="flex flex-wrap gap-4 mb-8">
               <button
+                onClick={handleAddToCart}
                 className="px-6 py-3 rounded-full font-semibold shadow-md text-white transition-all duration-300 hover:scale-105 hover:bg-[#014c57]"
                 style={{ backgroundColor: TEAL_PRIMARY }}
               >
@@ -258,13 +282,13 @@ export default function ProductDetailPage() {
               </button>
 
               <button
+                onClick={handleBuyNow}
                 className="px-6 py-3 rounded-full font-semibold text-white shadow-md transition-all duration-300 hover:scale-105 hover:bg-[#014c57]"
                 style={{ backgroundColor: TEAL_PRIMARY }}
               >
                 Buy Now
               </button>
             </div>
-
             <div
               className="flex items-center justify-center gap-4 px-6 py-5 rounded-2xl mb-10 shadow-md"
               style={{

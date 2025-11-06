@@ -1,133 +1,133 @@
 "use client";
 
-import { useState } from "react";
+import { useCart } from "@/context/CartContext";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
-  // temporary static data for demo (will replace with real cart items later)
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Wireless Bluetooth Headphones",
-      price: 2999,
-      quantity: 1,
-      image: "/placeholder-product.png",
-    },
-    {
-      id: 2,
-      name: "Smart Fitness Watch",
-      price: 4999,
-      quantity: 2,
-      image: "/placeholder-product.png",
-    },
-  ]);
+  const { cart, loading, addToCart, removeFromCart, clearCart } = useCart();
+  const router = useRouter();
 
-  const total = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+  if (loading) return <div className="p-10 text-gray-600">Loading your cart...</div>;
+  if (!cart || !cart.items || cart.items.length === 0)
+    return <div className="p-10 text-center text-gray-500">Your cart is empty 🛒</div>;
+
+  const total = cart.items.reduce(
+    (sum: number, i: any) => sum + (i.price || i.product.price) * i.quantity,
     0
   );
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-semibold mb-8 tracking-wide">
-        Your Shopping Cart 🛒
-      </h1>
+  const handleQuantityChange = async (
+    productId: string,
+    currentQty: number,
+    action: "increase" | "decrease"
+  ) => {
+    if (action === "increase") {
+      await addToCart(productId, currentQty + 1);
+    } else {
+      if (currentQty > 1) {
+        await addToCart(productId, currentQty - 1);
+      } else {
+        if (confirm("Remove this item from your cart?")) {
+          await removeFromCart(productId);
+        }
+      }
+    }
+  };
 
-      {cartItems.length === 0 ? (
-        <div className="text-gray-600 text-center py-20 border rounded-md">
-          <p className="text-lg font-medium mb-2">Your cart is empty</p>
-          <p className="text-sm text-gray-500">
-            Looks like you haven’t added anything yet.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* 🧾 Cart Items List */}
-          <div className="md:col-span-2 space-y-6">
-            {cartItems.map((item) => (
+  return (
+    <div className="min-h-screen bg-[#F5F5F4] py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
+        <h1 className="text-2xl font-semibold mb-8 text-[#025a6a]">Your Cart</h1>
+
+        <div className="space-y-5">
+          {cart.items.map((item: any) => (
+            <div
+              key={item.id}
+              className="flex justify-between items-center border border-gray-200 rounded-lg p-4 bg-white hover:shadow-sm transition cursor-pointer"
+            >
+              {/* 🖼️ Clickable Product */}
               <div
-                key={item.id}
-                className="flex items-center justify-between border rounded-md p-4 shadow-sm hover:shadow-md transition"
+                className="flex items-center gap-4"
+                onClick={() => router.push(`/product/${item.product.id}`)}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 bg-gray-100 rounded-md overflow-hidden">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      width={80}
-                      height={80}
-                      className="object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h2 className="font-medium text-gray-800 text-[1rem]">
-                      {item.name}
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      ₹{item.price.toLocaleString("en-IN")}
-                    </p>
-                    <div className="flex items-center mt-2">
-                      <span className="text-sm mr-2 text-gray-600">Qty:</span>
-                      <select
-                        value={item.quantity}
-                        onChange={(e) =>
-                          setCartItems((prev) =>
-                            prev.map((i) =>
-                              i.id === item.id
-                                ? { ...i, quantity: Number(e.target.value) }
-                                : i
-                            )
-                          )
-                        }
-                        className="border border-gray-300 rounded px-2 py-1 text-sm"
-                      >
-                        {[1, 2, 3, 4, 5].map((q) => (
-                          <option key={q} value={q}>
-                            {q}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                <Image
+                  src={item.product.imageUrl || "/placeholder.png"}
+                  alt={item.product.name}
+                  width={80}
+                  height={80}
+                  className="rounded-md object-cover"
+                />
+                <div>
+                  <h2 className="font-medium text-gray-800">{item.product.name}</h2>
+                  <p className="text-sm text-gray-500">₹{item.product.price.toFixed(2)}</p>
+                </div>
+              </div>
+
+              {/* ➕➖ Quantity Controls + Price + Remove */}
+              <div className="flex items-center gap-5">
+                <div className="flex items-center border border-gray-300 rounded-md">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuantityChange(item.product.id, item.quantity, "decrease");
+                    }}
+                    className="px-2 py-1 text-gray-700 hover:text-[#025a6a] transition"
+                  >
+                    −
+                  </button>
+                  <span className="px-3 text-gray-800 font-medium">{item.quantity}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuantityChange(item.product.id, item.quantity, "increase");
+                    }}
+                    className="px-2 py-1 text-gray-700 hover:text-[#025a6a] transition"
+                  >
+                    +
+                  </button>
                 </div>
 
+                <p className="font-semibold text-gray-800">
+                  ₹{(item.product.price * item.quantity).toFixed(2)}
+                </p>
+
                 <button
-                  onClick={() =>
-                    setCartItems((prev) =>
-                      prev.filter((i) => i.id !== item.id)
-                    )
-                  }
-                  className="text-sm text-red-600 hover:text-red-700 font-medium transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeFromCart(item.product.id);
+                  }}
+                  className="text-red-600 hover:text-red-700 text-sm font-medium transition"
                 >
                   Remove
                 </button>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
 
-          {/* 💰 Cart Summary */}
-          <div className="border rounded-md p-6 shadow-sm h-fit">
-            <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-            <div className="flex justify-between text-gray-700 mb-2">
-              <span>Subtotal</span>
-              <span>₹{total.toLocaleString("en-IN")}</span>
-            </div>
-            <div className="flex justify-between text-gray-700 mb-2">
-              <span>Shipping</span>
-              <span className="text-green-600">Free</span>
-            </div>
-            <hr className="my-3" />
-            <div className="flex justify-between text-lg font-semibold">
-              <span>Total</span>
-              <span>₹{total.toLocaleString("en-IN")}</span>
-            </div>
+        <div className="mt-10 border-t pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="font-semibold text-lg text-gray-800">
+            Total: ₹{total.toLocaleString("en-IN")}
+          </p>
 
-            <button className="mt-6 w-full bg-[#ba9d5d] hover:bg-[#a4884e] text-white font-semibold py-2 rounded-md transition">
-              Proceed to Checkout
+          <div className="flex gap-3">
+            <button
+              onClick={clearCart}
+              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition font-medium"
+            >
+              Clear Cart
+            </button>
+
+            <button
+              onClick={() => router.push("/checkout")}
+              className="bg-[#ba9d5d] text-white px-6 py-2 rounded-md hover:bg-[#a98c4f] transition font-semibold shadow-md"
+            >
+              Proceed to Checkout →
             </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

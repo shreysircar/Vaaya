@@ -42,3 +42,28 @@ body {
 .logo-wrapper img {
   pointer-events: auto;
 }
+
+
+@keyframes gradientMotion {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradientMotion {
+  background: linear-gradient(
+    135deg,
+    #4a9eb3,
+    #dec08a,
+    #292524,
+    #4a9eb3
+  );
+  background-size: 300% 300%;
+  animation: gradientMotion 10s ease infinite;
+}

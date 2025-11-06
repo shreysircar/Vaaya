@@ -176,4 +176,33 @@ router.delete("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   }
 });
 
+/* -------------------------------------------------------------------------- */
+/* 🧭 GET single ParentCategory (with subcategories + products)               */
+/* -------------------------------------------------------------------------- */
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const category = await prisma.parentCategory.findUnique({
+      where: { id },
+      include: {
+        subcategories: {
+          include: { products: true },
+        },
+        products: true, // directly under this category
+      },
+    });
+
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
+
+    res.json(category);
+  } catch (err) {
+    console.error("❌ Error fetching category:", err);
+    res.status(500).json({ message: "Server error fetching category" });
+  }
+});
+
+
+
 export default router;

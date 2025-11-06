@@ -7,10 +7,9 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Company Info */}
         <div>
-          <h3 className="text-white font-bold text-lg mb-3">E-Shop</h3>
+          <h3 className="text-white font-bold text-lg mb-3">Vaaya</h3>
           <p className="text-gray-300 text-sm">
-            Your one-stop destination for premium furniture, electronics, and home essentials.
-          </p>
+        India's favorite online furniture destination. Quality steel and wood furniture with hassle-free delivery.</p>
         </div>
 
         {/* Quick Links */}
@@ -30,7 +29,7 @@ export default function Footer() {
           <p className="text-sm mb-2">Email: support@eshop.com</p>
           <p className="text-sm mb-2">Phone: +1 234 567 890</p>
           <div className="flex space-x-3 mt-2">
-            <a href="#" className="hover:text-white">Facebook</a>
+            <a href="#" className="hover:text-white">Linkedin</a>
             <a href="#" className="hover:text-white">Instagram</a>
             <a href="#" className="hover:text-white">Twitter</a>
           </div>
@@ -38,7 +37,7 @@ export default function Footer() {
       </div>
 
       <div className="text-center text-gray-400 text-xs mt-8">
-        &copy; {new Date().getFullYear()} E-Shop. All rights reserved.
+        &copy;{new Date().getFullYear()} Vaaya. All rights reserved.
       </div>
     </footer>
   );

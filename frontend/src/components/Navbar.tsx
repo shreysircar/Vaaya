@@ -4,10 +4,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useCart } from "@/context/CartContext";      
+import { useWishlist } from "@/context/WishlistContext"; 
 
 // === ICONS ===
 const baseIconClasses =
-  "transition-colors duration-300 ease-out group-hover:text-[#81bdc9] group-hover:scale-105";
+  "transition-colors duration-300 ease-out group-hover:text-[#dec08a] group-hover:scale-105";
 
 const SearchIcon = () => (
   <svg
@@ -84,12 +86,15 @@ const CartIcon = () => (
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { cart } = useCart(); // ✅ add this line
+  const { wishlist } = useWishlist(); // ✅ add this line
   const router = useRouter();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [categories, setCategories] = useState([]);
+  
 
   useEffect(() => setIsMounted(true), []);
 
@@ -143,7 +148,7 @@ export default function Navbar() {
         <div className="relative group" ref={dropdownRef}>
           <button
             onClick={() => setOpen(!open)}
-            className="hover:text-[#ba9d5d] transition p-1 flex items-center justify-center"
+            className="hover:text-[#dec08a] transition p-1 flex items-center justify-center"
           >
             <UserIcon />
           </button>
@@ -173,7 +178,7 @@ export default function Navbar() {
 
     return (
       <div className="hidden sm:flex space-x-4 text-base font-medium">
-        <a href="/login" className="text-gray-700 hover:text-[#ba9d5d] transition">
+        <a href="/login" className="text-gray-700 hover:text-[#dec08a] transition">
           Sign In
         </a>
       </div>
@@ -203,27 +208,38 @@ export default function Navbar() {
         <div className="flex items-center space-x-5 text-gray-800 ml-auto py-2">
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="group hover:text-[#81bdc9] transition p-1 flex items-center justify-center"
+            className="group hover:text-[#dec08a] transition p-1 flex items-center justify-center"
             aria-label={showSearch ? "Close search" : "Open search"}
           >
             {showSearch ? <XIcon /> : <SearchIcon />}
           </button>
 
-          {/* ❤️ Wishlist */}
-          <a
-            href="/wishlist"
-            className="group hover:text-[#81bdc9] transition p-1 relative flex items-center justify-center"
-          >
-            <WishlistIcon />
-          </a>
+      {/* ❤️ Wishlist */}
+<a
+  href="/wishlist"
+  className="group hover:text-[#dec08a] transition p-1 relative flex items-center justify-center"
+>
+  <WishlistIcon />
+  {wishlist?.items?.length > 0 && (
+    <span className="absolute -top-1 -right-2 bg-[#dec08a] text-white text-[10px] font-semibold px-[5px] py-[1px] rounded-full leading-none">
+      {wishlist.items.length}
+    </span>
+  )}
+</a>
 
-          {/* 🛒 Cart */}
-          <a
-            href="/cart"
-            className="group hover:text-[#81bdc9] transition p-1 relative flex items-center justify-center"
-          >
-            <CartIcon />
-          </a>
+{/* 🛒 Cart */}
+<a
+  href="/cart"
+  className="group hover:text-[#dec08a] transition p-1 relative flex items-center justify-center"
+>
+  <CartIcon />
+  {cart?.items?.length > 0 && (
+    <span className="absolute -top-1 -right-2 bg-[#dec08a] text-white text-[10px] font-semibold px-[5px] py-[1px] rounded-full leading-none">
+      {cart.items.length}
+    </span>
+  )}
+</a>
+
 
           <AuthButtons />
         </div>
@@ -262,7 +278,7 @@ export default function Navbar() {
               <span
                 className="relative flex items-center gap-1 px-2 py-1 font-[Poppins] text-gray-700 text-[0.9rem]
                 transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]
-                group-hover:text-[#81bdc9] group-hover:drop-shadow-sm group-hover:scale-[1.03]"
+                group-hover:text-[#dec08a] group-hover:drop-shadow-sm group-hover:scale-[1.03]"
               >
                 {cat.name}
                 {/* ▼ arrow icon */}
@@ -280,10 +296,11 @@ export default function Navbar() {
                 </svg>
 
                 {/* underline hover effect */}
-                <span
-                  className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#8f7a43] via-[#ba9d5d] to-[#d8c27a]
-                  group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
-                ></span>
+<span
+  className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#c7a96b] via-[#dec08a] to-[#f0d9a3]
+  group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
+></span>
+
               </span>
 
               {/* 🔽 Full-width dropdown */}

@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 export interface Product {
   id: string;
@@ -22,32 +24,34 @@ const DEEP_CHARCOAL = "#292524";
 
 export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
+  const { addToCart, cart } = useCart();
+  const { wishlist, toggleWishlist } = useWishlist();
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // ✅ Load wishlist state from localStorage
+  // ✅ Keep wishlist sync with global context
   useEffect(() => {
-    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    setIsWishlisted(wishlist.includes(product.id));
-  }, [product.id]);
-
-  // ✅ Handle toggle wishlist
-  const toggleWishlist = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    let updated;
-    if (wishlist.includes(product.id)) {
-      updated = wishlist.filter((id: string) => id !== product.id);
-      setIsWishlisted(false);
-    } else {
-      updated = [...wishlist, product.id];
+    if (wishlist?.items?.some((item: any) => item.productId === product.id)) {
       setIsWishlisted(true);
+    } else {
+      setIsWishlisted(false);
     }
-    localStorage.setItem("wishlist", JSON.stringify(updated));
+  }, [wishlist, product.id]);
+
+  // ❤️ Toggle wishlist
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await toggleWishlist(product.id);
   };
 
-  // ✅ Handle navigation to Product Details
+  // 🛒 Add to cart
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await addToCart(product.id, 1, product.price);
+  };
+
+  // 🔍 Go to product details
   const handleClick = () => {
-    router.push(`/product/${product.id}`); // ✅ corrected path
+    router.push(`/product/${product.id}`);
   };
 
   return (
@@ -56,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       className="relative group cursor-pointer bg-[#F5F5F4] border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
       whileHover={{ scale: 1.02 }}
     >
-      {/* Image Section */}
+      {/* 🖼️ Product Image */}
       <div className="relative w-full h-72 overflow-hidden bg-white">
         <motion.img
           src={product.imageUrl || "/images/placeholder.jpg"}
@@ -66,7 +70,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* ❤️ Wishlist Icon */}
         <motion.button
-          onClick={toggleWishlist}
+          onClick={handleToggleWishlist}
           whileTap={{ scale: 0.9 }}
           className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-sm hover:shadow-md transition-all"
         >
@@ -80,7 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </motion.button>
       </div>
 
-      {/* Info Section */}
+      {/* ℹ️ Product Info */}
       <div className="p-5 transition-all duration-300 ease-in-out group-hover:mb-12">
         <h3 className="font-semibold text-[#292524] text-sm mb-1 truncate">
           {product.name}
@@ -90,12 +94,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
       </div>
 
-      {/* Add to Cart Button (appears on hover) */}
+      {/* 🛒 Add to Cart Button */}
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log(`🛒 Add to cart: ${product.name}`);
-        }}
+        onClick={handleAddToCart}
         className="absolute bottom-5 left-1/2 -translate-x-1/2 w-11/12 py-2 rounded-xl text-white font-medium text-sm bg-[#025a6a] hover:bg-[#014c57] shadow-md
                    opacity-0 translate-y-6 transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:-translate-y-0"
       >

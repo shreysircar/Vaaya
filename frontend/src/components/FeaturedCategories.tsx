@@ -134,7 +134,8 @@ export default function FeaturedCategories({ section: passedSection }: FeaturedC
             }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="relative group overflow-hidden rounded-2xl cursor-pointer border border-gray-100 hover:shadow-lg transition-all duration-300"
-            onClick={() => router.push(`/shop?category=${cat.id}`)}
+            onClick={() => router.push(`/category/${cat.id}`)}
+
           >
             <img
               src={cat.imageUrl || "/images/placeholder.jpg"}
