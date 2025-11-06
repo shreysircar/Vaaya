@@ -9,7 +9,7 @@ export default function Footer() {
           {/* Logo Section */}
           <div className="flex items-center mb-3">
             <Image
-              src="/logo1.svg" // ✅ replace with your actual logo path
+              src="/logo1.svg" 
               alt="Via Logo"
               width={120}
               height={40}
