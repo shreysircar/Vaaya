@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 
 const MUSTARD_LIGHT = "#dec08a";
 const DEEP_CHARCOAL = "#292524";
+const DEEP_BLUE = "#4a9eb3"; 
 
 interface Product {
   id: string;
@@ -127,7 +128,7 @@ export default function CategoryPage() {
       animate={{ opacity: 1, width: 80 }}
       transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className="h-[3px] rounded-full"
-      style={{ backgroundColor: MUSTARD_LIGHT }}
+      style={{ backgroundColor: DEEP_BLUE }}
     ></motion.div>
   </div>
 </div>
@@ -159,7 +160,7 @@ export default function CategoryPage() {
                 </h3>
                 <div
                   className="h-[2px] w-16 rounded-full"
-                  style={{ backgroundColor: MUSTARD_LIGHT }}
+                  style={{ backgroundColor: DEEP_BLUE }}
                 ></div>
               </div>
 

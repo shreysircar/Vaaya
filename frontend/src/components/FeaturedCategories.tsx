@@ -6,7 +6,6 @@ import { motion } from "framer-motion"; // ✅ added
 
 const DEEP_CHARCOAL = "#292524";
 const MUSTARD_LIGHT = "#dec08a";
-const DEEP_BLUE = "#4a9eb3"; // darker teal-blue
 
 interface Category {
   id: string;
