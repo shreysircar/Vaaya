@@ -362,26 +362,33 @@ export default function Navbar() {
                   translate-y-3 group-hover:translate-y-0 transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] z-40"
                 >
                   <div className="max-w-7xl mx-auto px-10 py-10 grid grid-cols-5 gap-10">
-                    {cat.subcategories.map((sub: any) => (
-                      <div key={sub.id} className="transform transition-all duration-500 hover:scale-[1.04]">
-                        <h4 className="uppercase tracking-wider text-gray-900 font-semibold text-[0.75rem] mb-4 border-b border-gray-200 pb-2 font-[Inter]">
-                          {sub.name}
-                        </h4>
-                        <ul className="space-y-2">
-{sub.products?.map((p: any) => (
-  <li
-    key={p.id}
-    onClick={() => router.push(`/product/${p.id}`)}
-    className="text-gray-600 text-sm hover:text-[#8f7a43] hover:bg-[#f7f3e8]/90 px-2 py-1 rounded-md
-    transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer hover:translate-x-1"
+{cat.subcategories.map((sub: any) => (
+  <div
+    key={sub.id}
+    className="transform transition-all duration-500 hover:scale-[1.02] text-left"
   >
-    {p.name}
-  </li>
+    {/* Subcategory Heading */}
+    <h4 className="font-[Poppins] text-[0.9rem] text-[#111111] mb-2">
+      {sub.name}
+    </h4>
+
+    {/* Product List */}
+    <ul className="flex flex-col space-y-1">
+      {sub.products?.map((p: any) => (
+        <li
+          key={p.id}
+          onClick={() => router.push(`/product/${p.id}`)}
+          className="font-[Poppins] text-[0.9rem] text-[#7a7a7a] hover:text-[#8f7a43] hover:bg-[#f7f3e8]/90 py-[3px] rounded-md
+          transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer"
+        >
+          {p.name}
+        </li>
+      ))}
+    </ul>
+  </div>
 ))}
 
-                        </ul>
-                      </div>
-                    ))}
+
                   </div>
                 </div>
               )}
