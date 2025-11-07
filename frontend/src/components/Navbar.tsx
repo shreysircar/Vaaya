@@ -4,51 +4,28 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useCart } from "@/context/CartContext";      
-import { useWishlist } from "@/context/WishlistContext"; 
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 // === ICONS ===
 const baseIconClasses =
   "transition-colors duration-300 ease-out group-hover:text-[#dec08a] group-hover:scale-105";
 
 const SearchIcon = () => (
-  <svg
-    className={`w-6 h-6 stroke-2 ${baseIconClasses}`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-    />
+  <svg className={`w-6 h-6 stroke-2 ${baseIconClasses}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
   </svg>
 );
 
 const XIcon = () => (
-  <svg
-    className={`w-6 h-6 stroke-2 ${baseIconClasses}`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
+  <svg className={`w-6 h-6 stroke-2 ${baseIconClasses}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 );
 
 const UserIcon = () => (
-  <svg
-    className={`w-6 h-6 stroke-2 ${baseIconClasses}`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-    />
+  <svg className={`w-6 h-6 stroke-2 ${baseIconClasses}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
 );
 
@@ -70,12 +47,7 @@ const WishlistIcon = () => (
 );
 
 const CartIcon = () => (
-  <svg
-    className={`w-6 h-6 stroke-2 ${baseIconClasses}`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
+  <svg className={`w-6 h-6 stroke-2 ${baseIconClasses}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -86,15 +58,18 @@ const CartIcon = () => (
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const { cart } = useCart(); // ✅ add this line
-  const { wishlist } = useWishlist(); // ✅ add this line
+  const { cart } = useCart();
+  const { wishlist } = useWishlist();
   const router = useRouter();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [categories, setCategories] = useState([]);
-  
+
+  // 🔍 Search integration
+  const [searchResults, setSearchResults] = useState<{ products: any[]; parentCategories: any[] } | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => setIsMounted(true), []);
 
@@ -113,12 +88,46 @@ export default function Navbar() {
     fetchCategories();
   }, []);
 
+  // === Debounced Search ===
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setSearchResults(null);
+      return;
+    }
+
+    const delay = setTimeout(async () => {
+      try {
+        setSearchLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/search?query=${encodeURIComponent(searchTerm)}`
+        );
+        const data = await res.json();
+        setSearchResults(data);
+      } catch (err) {
+        console.error("Error searching:", err);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(delay);
+  }, [searchTerm]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
       setShowSearch(false);
+      setSearchResults(null);
     }
+  };
+
+  const handleResultClick = (type: "product" | "parent", item: any) => {
+    if (type === "product") router.push(`/product/${item.id}`);
+    if (type === "parent") router.push(`/category/${item.id}`);
+    setSearchResults(null);
+    setShowSearch(false);
+    setSearchTerm("");
   };
 
   const handleLogout = () => {
@@ -146,19 +155,12 @@ export default function Navbar() {
     if (user) {
       return (
         <div className="relative group" ref={dropdownRef}>
-          <button
-            onClick={() => setOpen(!open)}
-            className="hover:text-[#dec08a] transition p-1 flex items-center justify-center"
-          >
+          <button onClick={() => setOpen(!open)} className="hover:text-[#dec08a] transition p-1 flex items-center justify-center">
             <UserIcon />
           </button>
           {open && (
             <div className="absolute right-0 mt-3 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-10">
-              <a
-                href="/profile"
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => setOpen(false)}
-              >
+              <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setOpen(false)}>
                 My Account
               </a>
               <button
@@ -214,32 +216,25 @@ export default function Navbar() {
             {showSearch ? <XIcon /> : <SearchIcon />}
           </button>
 
-      {/* ❤️ Wishlist */}
-<a
-  href="/wishlist"
-  className="group hover:text-[#dec08a] transition p-1 relative flex items-center justify-center"
->
-  <WishlistIcon />
-  {wishlist?.items?.length > 0 && (
-    <span className="absolute -top-1 -right-2 bg-[#dec08a] text-white text-[10px] font-semibold px-[5px] py-[1px] rounded-full leading-none">
-      {wishlist.items.length}
-    </span>
-  )}
-</a>
+          {/* ❤️ Wishlist */}
+          <a href="/wishlist" className="group hover:text-[#dec08a] transition p-1 relative flex items-center justify-center">
+            <WishlistIcon />
+            {wishlist?.items?.length > 0 && (
+              <span className="absolute -top-1 -right-2 bg-[#dec08a] text-white text-[10px] font-semibold px-[5px] py-[1px] rounded-full leading-none">
+                {wishlist.items.length}
+              </span>
+            )}
+          </a>
 
-{/* 🛒 Cart */}
-<a
-  href="/cart"
-  className="group hover:text-[#dec08a] transition p-1 relative flex items-center justify-center"
->
-  <CartIcon />
-  {cart?.items?.length > 0 && (
-    <span className="absolute -top-1 -right-2 bg-[#dec08a] text-white text-[10px] font-semibold px-[5px] py-[1px] rounded-full leading-none">
-      {cart.items.length}
-    </span>
-  )}
-</a>
-
+          {/* 🛒 Cart */}
+          <a href="/cart" className="group hover:text-[#dec08a] transition p-1 relative flex items-center justify-center">
+            <CartIcon />
+            {cart?.items?.length > 0 && (
+              <span className="absolute -top-1 -right-2 bg-[#dec08a] text-white text-[10px] font-semibold px-[5px] py-[1px] rounded-full leading-none">
+                {cart.items.length}
+              </span>
+            )}
+          </a>
 
           <AuthButtons />
         </div>
@@ -247,23 +242,84 @@ export default function Navbar() {
 
       {/* === Search Bar === */}
       {showSearch && (
-        <div className="border-t border-gray-100 py-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto transition-all duration-300 ease-in-out">
+        <div className="border-t border-gray-100 py-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto transition-all duration-300 ease-in-out relative">
           <form onSubmit={handleSearchSubmit} className="flex w-full">
             <input
               type="text"
-              placeholder="Search for products..."
+              placeholder="Search for products or categories..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:border-gray-500 focus:ring-0 focus:outline-none transition"
+              className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:border-[#dec08a] focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-400 font-medium text-[0.95rem] transition"
               autoFocus
             />
             <button
               type="submit"
-              className="bg-gray-900 text-white px-6 py-2 rounded-r-md hover:bg-gray-700 transition"
+              className="bg-gray-900 text-white px-6 py-2 rounded-r-md transition-colors duration-300 hover:bg-[#dec08a] hover:text-gray-900 font-medium"
             >
               Search
             </button>
           </form>
+
+          {/* 🔍 Enhanced Search Dropdown */}
+          {searchLoading ? (
+            <div className="absolute left-0 right-0 top-[4.5rem] bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 overflow-hidden">
+              <div className="p-4 space-y-3 animate-pulse">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="h-4 bg-gray-200/80 rounded w-[90%] mx-auto"></div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            searchResults && (
+              <div className="absolute left-0 right-0 top-[4.5rem] bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.08)] z-50 max-h-96 overflow-y-auto transition-all duration-300">
+                {/* Products */}
+                {searchResults.products?.length > 0 && (
+                  <div>
+                    <p className="px-4 py-2 text-gray-900 font-semibold text-sm uppercase tracking-wide border-b border-gray-100 bg-gray-50">
+                      Products
+                    </p>
+                    {searchResults.products.map((p) => (
+                      <div
+                        key={p.id}
+                        onClick={() => handleResultClick("product", p)}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-[#f9f6ef] cursor-pointer transition-all duration-200"
+                      >
+                        <div className="flex-1">
+                          <p className="text-gray-800 font-medium text-[0.95rem]">{p.name}</p>
+                          {p.parentCategory && <p className="text-xs text-gray-500">in {p.parentCategory.name}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Categories */}
+                {searchResults.parentCategories?.length > 0 && (
+                  <div>
+                    <p className="px-4 py-2 text-gray-900 font-semibold text-sm uppercase tracking-wide border-b border-gray-100 bg-gray-50">
+                      Categories
+                    </p>
+                    {searchResults.parentCategories.map((c) => (
+                      <div
+                        key={c.id}
+                        onClick={() => handleResultClick("parent", c)}
+                        className="px-4 py-3 hover:bg-[#f9f6ef] cursor-pointer transition-all duration-200"
+                      >
+                        <p className="text-gray-800 font-medium text-[0.95rem]">{c.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {searchResults.products?.length === 0 && searchResults.parentCategories?.length === 0 && (
+                  <div className="px-4 py-6 text-center text-gray-500 text-sm">
+                    No results found for <span className="font-semibold">{searchTerm}</span>.
+                  </div>
+                )}
+              </div>
+            )
+          )}
         </div>
       )}
 
@@ -281,7 +337,6 @@ export default function Navbar() {
                 group-hover:text-[#dec08a] group-hover:drop-shadow-sm group-hover:scale-[1.03]"
               >
                 {cat.name}
-                {/* ▼ arrow icon */}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
@@ -294,16 +349,12 @@ export default function Navbar() {
                     clipRule="evenodd"
                   />
                 </svg>
-
-                {/* underline hover effect */}
-<span
-  className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#c7a96b] via-[#dec08a] to-[#f0d9a3]
-  group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
-></span>
-
+                <span
+                  className="absolute left-0 bottom-0 w-0 h-[2px] bg-gradient-to-r from-[#c7a96b] via-[#dec08a] to-[#f0d9a3]
+                  group-hover:w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] rounded-full"
+                ></span>
               </span>
 
-              {/* 🔽 Full-width dropdown */}
               {cat.subcategories?.length > 0 && (
                 <div
                   className="fixed left-0 top-[8rem] w-full bg-white/95 backdrop-blur-md border-t border-gray-100 
@@ -312,23 +363,22 @@ export default function Navbar() {
                 >
                   <div className="max-w-7xl mx-auto px-10 py-10 grid grid-cols-5 gap-10">
                     {cat.subcategories.map((sub: any) => (
-                      <div
-                        key={sub.id}
-                        className="transform transition-all duration-500 hover:scale-[1.04]"
-                      >
+                      <div key={sub.id} className="transform transition-all duration-500 hover:scale-[1.04]">
                         <h4 className="uppercase tracking-wider text-gray-900 font-semibold text-[0.75rem] mb-4 border-b border-gray-200 pb-2 font-[Inter]">
                           {sub.name}
                         </h4>
                         <ul className="space-y-2">
-                          {sub.products?.map((p: any) => (
-                            <li
-                              key={p.id}
-                              className="text-gray-600 text-sm hover:text-[#8f7a43] hover:bg-[#f7f3e8]/90 px-2 py-1 rounded-md
-                              transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer hover:translate-x-1"
-                            >
-                              {p.name}
-                            </li>
-                          ))}
+{sub.products?.map((p: any) => (
+  <li
+    key={p.id}
+    onClick={() => router.push(`/product/${p.id}`)}
+    className="text-gray-600 text-sm hover:text-[#8f7a43] hover:bg-[#f7f3e8]/90 px-2 py-1 rounded-md
+    transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer hover:translate-x-1"
+  >
+    {p.name}
+  </li>
+))}
+
                         </ul>
                       </div>
                     ))}

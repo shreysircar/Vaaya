@@ -3,10 +3,12 @@
 import { useCart } from "@/context/CartContext";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function CartPage() {
-  const { cart, loading, addToCart, removeFromCart, clearCart } = useCart();
+  const { cart, loading, removeFromCart, clearCart, updateCartItemQuantity } = useCart();
   const router = useRouter();
+  const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
   if (loading) return <div className="p-10 text-gray-600">Loading your cart...</div>;
   if (!cart || !cart.items || cart.items.length === 0)
@@ -17,24 +19,43 @@ export default function CartPage() {
     0
   );
 
-  const handleQuantityChange = async (
-    productId: string,
-    currentQty: number,
-    action: "increase" | "decrease"
-  ) => {
+  // ✅ Updated logic: use PATCH route for +/− changes
+const handleQuantityChange = async (
+  productId: string,
+  currentQty: number,
+  action: "increase" | "decrease"
+) => {
+  // 🧠 prevent double-clicks while one request is in progress
+  if (loadingMap[productId]) return;
+
+  try {
+    setLoadingMap((prev) => ({ ...prev, [productId]: true }));
+
     if (action === "increase") {
-      await addToCart(productId, currentQty + 1);
+      const res = await updateCartItemQuantity(productId, +1);
+      if (!res.ok && res.message) alert(res.message);
     } else {
       if (currentQty > 1) {
-        await addToCart(productId, currentQty - 1);
+        const res = await updateCartItemQuantity(productId, -1);
+        if (!res.ok && res.message) alert(res.message);
       } else {
         if (confirm("Remove this item from your cart?")) {
           await removeFromCart(productId);
         }
       }
     }
-  };
+  } catch (err) {
+    console.error("Error updating quantity:", err);
+  } finally {
+    setTimeout(() => {
+      // tiny delay to avoid immediate re-click
+      setLoadingMap((prev) => ({ ...prev, [productId]: false }));
+    }, 200);
+  }
+};
 
+
+  // ✅ UI remains exactly the same
   return (
     <div className="min-h-screen bg-[#F5F5F4] py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
@@ -46,7 +67,6 @@ export default function CartPage() {
               key={item.id}
               className="flex justify-between items-center border border-gray-200 rounded-lg p-4 bg-white hover:shadow-sm transition cursor-pointer"
             >
-              {/* 🖼️ Clickable Product */}
               <div
                 className="flex items-center gap-4"
                 onClick={() => router.push(`/product/${item.product.id}`)}
@@ -60,14 +80,16 @@ export default function CartPage() {
                 />
                 <div>
                   <h2 className="font-medium text-gray-800">{item.product.name}</h2>
-                  <p className="text-sm text-gray-500">₹{item.product.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-500">
+                    ₹{item.product.price.toFixed(2)}
+                  </p>
                 </div>
               </div>
 
-              {/* ➕➖ Quantity Controls + Price + Remove */}
               <div className="flex items-center gap-5">
                 <div className="flex items-center border border-gray-300 rounded-md">
                   <button
+                    disabled={loadingMap[item.product.id]}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleQuantityChange(item.product.id, item.quantity, "decrease");
@@ -78,6 +100,7 @@ export default function CartPage() {
                   </button>
                   <span className="px-3 text-gray-800 font-medium">{item.quantity}</span>
                   <button
+                    disabled={loadingMap[item.product.id]}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleQuantityChange(item.product.id, item.quantity, "increase");
@@ -93,6 +116,7 @@ export default function CartPage() {
                 </p>
 
                 <button
+                  disabled={loadingMap[item.product.id]}
                   onClick={(e) => {
                     e.stopPropagation();
                     removeFromCart(item.product.id);
@@ -123,7 +147,7 @@ export default function CartPage() {
               onClick={() => router.push("/checkout")}
               className="bg-[#ba9d5d] text-white px-6 py-2 rounded-md hover:bg-[#a98c4f] transition font-semibold shadow-md"
             >
-              Proceed to Checkout →
+              Proceed to Checkout
             </button>
           </div>
         </div>

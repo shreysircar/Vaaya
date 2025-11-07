@@ -80,26 +80,48 @@ export default function ProductDetailPage() {
   };
 
   // 🟢 Add to cart logic
-  const handleAddToCart = async () => {
-    if (!user) {
-      alert("Please log in to add items to cart");
-      return;
-    }
-    await addToCart(String(id), quantity, product.price);
-    alert("✅ Added to cart successfully!");
-  };
+const handleAddToCart = async () => {
+  if (!user) {
+    alert("Please log in to add items to cart");
+    return;
+  }
+
+  const res = await addToCart(String(id), quantity, product.price);
+
+  if (!res.ok) {
+    alert(res.message || "❌ Could not add to cart — please check stock.");
+    return;
+  }
+
+  alert("✅ Added to cart successfully!");
+};
+
 
   // 🟢 Buy Now (add then go to checkout)
-  const handleBuyNow = async () => {
-    if (!user) {
-      alert("Please log in to continue to checkout");
-      return;
-    }
-    await addToCart(String(id), quantity, product.price);
-    router.push("/checkout");
-  };
+const handleBuyNow = async () => {
+  if (!user) {
+    alert("Please log in to continue to checkout");
+    return;
+  }
 
-  const increaseQty = () => setQuantity((q) => q + 1);
+  const res = await addToCart(String(id), quantity, product.price);
+  if (!res.ok) {
+    alert(res.message || "❌ Could not add to cart — please check stock.");
+    return;
+  }
+
+  router.push("/checkout");
+};
+
+
+const increaseQty = () => {
+  if (quantity < product.stock) {
+    setQuantity((q) => q + 1);
+  } else {
+    alert(`Only ${product.stock} units available.`);
+  }
+};
+
   const decreaseQty = () => setQuantity((q) => (q > 1 ? q - 1 : 1));
 
   const handleNextImage = () => {

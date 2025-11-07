@@ -11,6 +11,8 @@ import userRoutes from "./routes/user.js";
 import homepageSectionsRouter from "./routes/homepageSections.js";
 import cartRoutes from "./routes/cart.js";
 import wishlistRoutes from "./routes/wishlist.js";
+import checkoutRouter from "./routes/checkout.js";
+import searchRoutes from "./routes/search.js";
 
 dotenv.config();
 
@@ -33,6 +35,8 @@ app.use("/api/admin", userRoutes); // GET /api/admin/users
 app.use("/api/homepage-sections", homepageSectionsRouter);
 app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/checkout", checkoutRouter);
+app.use("/api/search", searchRoutes);
 
 
 

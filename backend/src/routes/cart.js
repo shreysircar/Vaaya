@@ -14,6 +14,7 @@ router.get("/:userId", async (req, res) => {
           include: {
             product: true,
           },
+            orderBy: { createdAt: "asc" },
         },
       },
     });
@@ -24,8 +25,7 @@ router.get("/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch cart" });
   }
 });
-
-// ✅ ADD or UPDATE item in cart
+// ✅ ADD or UPDATE item in cart (stock-aware)
 router.post("/", async (req, res) => {
   const { userId, productId, quantity, price } = req.body;
 
@@ -34,6 +34,14 @@ router.post("/", async (req, res) => {
   }
 
   try {
+    // 🟢 Get product stock info
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { stock: true, name: true, price: true },
+    });
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    // 🟢 Get or create cart
     let cart = await prisma.cart.findFirst({ where: { userId } });
     if (!cart) {
       cart = await prisma.cart.create({ data: { userId } });
@@ -43,12 +51,24 @@ router.post("/", async (req, res) => {
       where: { cartId: cart.id, productId },
     });
 
+    const currentQty = existingItem?.quantity ?? 0;
+    const desiredQty = currentQty + (quantity || 1);
+
+    // 🟢 Validate against stock
+    if (desiredQty > product.stock) {
+      const available = Math.max(0, product.stock - currentQty);
+      return res.status(400).json({
+        error: `Only ${product.stock} units of ${product.name} available.`,
+        available,
+        currentQuantity: currentQty,
+      });
+    }
+
+    // 🟢 Update or create
     if (existingItem) {
       await prisma.cartItem.update({
         where: { id: existingItem.id },
-        data: {
-          quantity: existingItem.quantity + (quantity || 1),
-        },
+        data: { quantity: desiredQty },
       });
     } else {
       await prisma.cartItem.create({
@@ -56,7 +76,7 @@ router.post("/", async (req, res) => {
           cartId: cart.id,
           productId,
           quantity: quantity || 1,
-          price: price || 0,
+          price: price ?? product.price ?? 0,
         },
       });
     }
@@ -67,6 +87,7 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: "Failed to add item to cart" });
   }
 });
+
 
 // ✅ REMOVE item from cart
 router.delete("/:userId/:productId", async (req, res) => {
@@ -100,5 +121,74 @@ router.delete("/:userId", async (req, res) => {
     res.status(500).json({ error: "Failed to clear cart" });
   }
 });
+
+// ✅ UPDATE quantity (+ / -)
+router.patch("/", async (req, res) => {
+  try {
+    const { userId, productId, delta } = req.body;
+    if (!userId || !productId || typeof delta !== "number") {
+      return res.status(400).json({ error: "Missing or invalid parameters" });
+    }
+
+    // 1️⃣ Find user's cart
+    const cart = await prisma.cart.findFirst({
+      where: { userId },
+      include: { items: true },
+    });
+    if (!cart) return res.status(404).json({ error: "Cart not found" });
+
+    const item = cart.items.find((i) => i.productId === productId);
+    if (!item) return res.status(404).json({ error: "Item not found in cart" });
+
+    // 2️⃣ Get current product stock
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { stock: true, name: true },
+    });
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    // 3️⃣ Calculate new quantity
+    const newQty = item.quantity + delta;
+
+    if (newQty > product.stock) {
+      return res.status(400).json({
+        error: `Only ${product.stock} units of ${product.name} left.`,
+        available: product.stock,
+        currentQuantity: item.quantity,
+      });
+    }
+
+    // If qty goes below 1, remove item
+    if (newQty <= 0) {
+      await prisma.cartItem.delete({ where: { id: item.id } });
+      return res.json({ ok: true, removed: true });
+    }
+
+// 4️⃣ Update cart item
+await prisma.cartItem.update({
+  where: { id: item.id },
+  data: { quantity: newQty },
+});
+
+// ✅ Return updated cart (saves frontend an extra refresh)
+const updatedCart = await prisma.cart.findFirst({
+  where: { userId },
+  include: {
+    items: {
+      include: { product: true },
+       orderBy: { createdAt: "asc" },
+    },
+  },
+});
+
+return res.json({ ok: true, cart: updatedCart });
+
+  } catch (err) {
+    console.error("PATCH /api/cart error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 
 export default router;

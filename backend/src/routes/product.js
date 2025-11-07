@@ -352,4 +352,42 @@ router.post("/by-ids", async (req, res) => {
   }
 });
 
+
+/* -------------------------------------------------------------------------- */
+/* 🔍 GET products with optional filters (search, category, subcategory)      */
+/* Example: /api/products/search?query=phone&parentCategoryId=abc&subCategoryId=xyz */
+/* -------------------------------------------------------------------------- */
+router.get("/search", async (req, res) => {
+  try {
+    const { query, parentCategoryId, subCategoryId } = req.query;
+
+    const where = {
+      ...(query && {
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
+        ],
+      }),
+      ...(parentCategoryId && { parentCategoryId }),
+      ...(subCategoryId && { subCategoryId }),
+    };
+
+    const products = await prisma.product.findMany({
+      where,
+      include: {
+        parentCategory: true,
+        subCategory: true,
+        specifications: true,
+      },
+      orderBy: { name: "asc" },
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error("❌ Error fetching filtered products:", error);
+    res.status(500).json({ message: "Failed to fetch filtered products" });
+  }
+});
+
+
 export default router;

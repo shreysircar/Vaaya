@@ -5,10 +5,13 @@ import { createContext, useContext, useEffect, useState } from "react";
 interface CartContextType {
   cart: any;
   loading: boolean;
-  addToCart: (productId: string, quantity?: number, price?: number) => Promise<void>;
+  addToCart: (productId: string, quantity?: number, price?: number) => Promise<{ ok: boolean; message?: string }>; // 🆕 return structured result
   removeFromCart: (productId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
+  updateCartItemQuantity: (productId: string, delta: number) => Promise<{ ok: boolean; message?: string }>; // 🆕 added
+  checkoutOrder: () => Promise<{ ok: boolean; message?: string }>; // 🆕 added
+
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -53,20 +56,102 @@ export const CartProvider = ({
     setCart(data);
   };
 
-  // ➕ Add to cart
-  const addToCart = async (productId: string, quantity = 1, price?: number) => {
-    if (!userId) return alert("Please log in first");
+  // ➕ Add to cart (now stock-aware)
+  const addToCart = async (
+    productId: string,
+    quantity = 1,
+    price?: number
+  ): Promise<{ ok: boolean; message?: string }> => {
+    if (!userId) return { ok: false, message: "Please log in first" };
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, productId, quantity, price }),
       });
-      if (res.ok) await refreshCart();
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // 🆕 backend sends helpful stock error messages
+        return { ok: false, message: data?.error || "Failed to add to cart" };
+      }
+
+      await refreshCart();
+      return { ok: true };
     } catch (err) {
       console.error("Failed to add to cart:", err);
+      return { ok: false, message: "Network error" };
     }
   };
+
+  // 🆕 Increment or decrement quantity in cart
+ const updateCartItemQuantity = async (
+  productId: string,
+  delta: number
+): Promise<{ ok: boolean; message?: string }> => {
+  if (!userId) return { ok: false, message: "User not logged in" };
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cart`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, productId, delta }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      // backend returns stock info (available, etc.)
+      return { ok: false, message: data?.error || "Failed to update quantity" };
+    }
+
+    // ✅ backend returns the updated cart now — apply it directly
+    if (data.cart) {
+      setCart(data.cart);
+    } else {
+      // fallback in case backend doesn’t return full cart
+      await refreshCart();
+    }
+
+    return { ok: true };
+  } catch (err) {
+    console.error("updateCartItemQuantity error:", err);
+    return { ok: false, message: "Network error" };
+  }
+};
+
+// 🆕 Checkout function
+const checkoutOrder = async (): Promise<{ ok: boolean; message?: string }> => {
+  if (!userId) return { ok: false, message: "Please log in first" };
+
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 409) {
+      // race condition / out-of-stock handled here
+      return { ok: false, message: data?.message || "Some items are out of stock" };
+    }
+
+    if (!res.ok) {
+      return { ok: false, message: data?.error || "Checkout failed" };
+    }
+
+    // on success: clear cart + return success
+    await refreshCart();
+    return { ok: true };
+  } catch (err) {
+    console.error("checkoutOrder error:", err);
+    return { ok: false, message: "Network error" };
+  }
+};
+
+
 
   // ❌ Remove from cart
   const removeFromCart = async (productId: string) => {
@@ -101,6 +186,8 @@ export const CartProvider = ({
     removeFromCart,
     clearCart,
     refreshCart,
+    updateCartItemQuantity, 
+    checkoutOrder
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
