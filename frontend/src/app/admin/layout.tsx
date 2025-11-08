@@ -45,6 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Users", href: "/admin/users" },
     { name: "Categories", href: "/admin/categories" },
     { name: "Homepage Sections", href: "/admin/homepage-sections" },
+    { name: "Announcement Bar", href: "/admin/announcementBar"}
   ];
 
   const handleLogout = () => {

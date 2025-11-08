@@ -13,6 +13,7 @@ import cartRoutes from "./routes/cart.js";
 import wishlistRoutes from "./routes/wishlist.js";
 import checkoutRouter from "./routes/checkout.js";
 import searchRoutes from "./routes/search.js";
+import announcementRoutes from "./routes/announcement.js";
 
 dotenv.config();
 
@@ -37,7 +38,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/checkout", checkoutRouter);
 app.use("/api/search", searchRoutes);
-
+app.use("/api/announcement", announcementRoutes);
 
 
 // Start server
