@@ -2,10 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "react-hot-toast";
 
 export interface Product {
   id: string;
@@ -18,90 +20,208 @@ interface ProductCardProps {
   product: Product;
 }
 
-const MUSTARD_LIGHT = "#dec08a";
-const DEEP_BLUE = "#025a6a";
-const DEEP_CHARCOAL = "#292524";
+const COLORS = {
+  MUSTARD_LIGHT: "#dec08a",
+  DEEP_BLUE: "#4a9eb3",
+  PRIMARY_TEAL: "#025a6a",
+  TEXT_GRAY: "#444444",
+  MUTED_GRAY: "#6b6b6b",
+  BORDER_GRAY: "#e5e5e5",
+  OFF_WHITE: "#f9f6ef",
+};
 
 export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
-  const { addToCart, cart } = useCart();
+  const { user, loading: authLoading } = useAuth(); // 👈 include loading state
+  const { addToCart } = useCart();
   const { wishlist, toggleWishlist } = useWishlist();
-  const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // ✅ Keep wishlist sync with global context
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
   useEffect(() => {
-    if (wishlist?.items?.some((item: any) => item.productId === product.id)) {
-      setIsWishlisted(true);
-    } else {
-      setIsWishlisted(false);
-    }
+    setIsWishlisted(
+      wishlist?.items?.some((item: any) => item.productId === product.id) || false
+    );
   }, [wishlist, product.id]);
 
-  // ❤️ Toggle wishlist
-  const handleToggleWishlist = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    await toggleWishlist(product.id);
-  };
+const handleToggleWishlist = async (e: React.MouseEvent) => {
+  e.stopPropagation();
 
-  // 🛒 Add to cart
+  // 🛑 Block unauthenticated users
+  if (authLoading || !user) {
+    toast.dismiss();
+    toast.error("Please log in to add to your wishlist", {
+      duration: 3000,
+      style: {
+        background: "#f9f6ef",
+        color: "#292524",
+        border: "1px solid #e5e5e5",
+        fontWeight: 500,
+      },
+    });
+    return;
+  }
+
+  try {
+    await toggleWishlist(product.id);
+    toast.success(
+      isWishlisted ? "Removed from wishlist" : "Added to wishlist",
+      {
+        duration: 1500,
+        style: {
+          background: "#f9f6ef",
+          color: "#292524",
+          border: "1px solid #e5e5e5",
+        },
+      }
+    );
+  } catch (err) {
+    console.error("Wishlist toggle failed:", err);
+    toast.error("Something went wrong while updating wishlist");
+  }
+};
+
+
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    await addToCart(product.id, 1, product.price);
+
+    // ✅ Guard for auth loading or no user
+    if (authLoading || !user) {
+      toast.dismiss();
+      toast.error("Please log in to add items to your cart", {
+        duration: 3000,
+        style: {
+          background: "#f9f6ef",
+          color: "#292524",
+          border: "1px solid #e5e5e5",
+          fontWeight: 500,
+        },
+      });
+      return;
+    }
+
+    try {
+      await addToCart(product.id, 1, product.price);
+      toast.success("Added to cart!", {
+        duration: 1500,
+        style: {
+          background: "#f9f6ef",
+          color: "#292524",
+          border: "1px solid #e5e5e5",
+        },
+      });
+    } catch (err) {
+      console.error("Add to cart failed:", err);
+      toast.error("Something went wrong while adding to cart");
+    }
   };
 
-  // 🔍 Go to product details
-  const handleClick = () => {
-    router.push(`/product/${product.id}`);
-  };
+  const handleClick = () => router.push(`/product/${product.id}`);
 
   return (
     <motion.div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       onClick={handleClick}
-      className="relative group cursor-pointer bg-[#F5F5F4] border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
-      whileHover={{ scale: 1.02 }}
+      className="relative cursor-pointer rounded-2xl overflow-hidden border flex flex-col transition-all duration-300"
+      style={{
+        backgroundColor: COLORS.OFF_WHITE,
+        borderColor: COLORS.BORDER_GRAY,
+        height: "380px",
+      }}
     >
-      {/* 🖼️ Product Image */}
-      <div className="relative w-full h-72 overflow-hidden bg-white">
-        <motion.img
-          src={product.imageUrl || "/images/placeholder.jpg"}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-
-        {/* ❤️ Wishlist Icon */}
-        <motion.button
-          onClick={handleToggleWishlist}
-          whileTap={{ scale: 0.9 }}
-          className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-sm hover:shadow-md transition-all"
-        >
-          <Heart
-            className={`w-5 h-5 ${
-              isWishlisted
-                ? "fill-current text-[#dec08a]"
-                : "text-gray-600 hover:text-[#dec08a]"
-            }`}
-          />
-        </motion.button>
-      </div>
-
-      {/* ℹ️ Product Info */}
-      <div className="p-5 transition-all duration-300 ease-in-out group-hover:mb-12">
-        <h3 className="font-semibold text-[#292524] text-sm mb-1 truncate">
-          {product.name}
-        </h3>
-        <p className="text-[#737373] font-bold text-xs tracking-wider">
-          ₹{product.price.toFixed(2)}
-        </p>
-      </div>
-
-      {/* 🛒 Add to Cart Button */}
-      <button
-        onClick={handleAddToCart}
-        className="absolute bottom-5 left-1/2 -translate-x-1/2 w-11/12 py-2 rounded-xl text-white font-medium text-sm bg-[#025a6a] hover:bg-[#014c57] shadow-md
-                   opacity-0 translate-y-6 transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:-translate-y-0"
+      <motion.div
+        animate={{ y: hovered ? -10 : 0 }}
+        transition={{ duration: 0.35, ease: "easeInOut" }}
+        className="flex flex-col justify-between flex-1 h-full"
       >
-        Add to Cart
-      </button>
+        <motion.div
+          className="relative w-full overflow-hidden bg-white"
+          animate={{ height: hovered ? 195 : 225 }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+        >
+          <motion.img
+            src={product.imageUrl || "/images/placeholder.jpg"}
+            alt={product.name}
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          />
+
+          <motion.button
+            onClick={handleToggleWishlist}
+            whileTap={{ scale: 0.9 }}
+            className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-sm hover:shadow-md transition-all"
+          >
+            <Heart
+              className="w-5 h-5"
+              style={{
+                color: isWishlisted ? COLORS.MUSTARD_LIGHT : COLORS.MUTED_GRAY,
+                fill: isWishlisted ? COLORS.MUSTARD_LIGHT : "none",
+              }}
+            />
+          </motion.button>
+        </motion.div>
+
+        <div className="px-4 pt-2 pb-1 flex flex-col gap-[3px]">
+          <p
+            className="text-xs font-medium tracking-wide"
+            style={{ color: COLORS.MUTED_GRAY }}
+          >
+            Vaaya
+          </p>
+
+          <h3
+            className="font-medium text-[15px] leading-snug line-clamp-2"
+            style={{ color: COLORS.TEXT_GRAY }}
+          >
+            {product.name}
+          </h3>
+
+          <div className="flex items-center gap-1 mt-[2px]">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={15}
+                fill={i < 4 ? COLORS.MUSTARD_LIGHT : "none"}
+                stroke={COLORS.MUSTARD_LIGHT}
+              />
+            ))}
+            <span
+              className="text-sm font-medium ml-1"
+              style={{ color: COLORS.MUTED_GRAY }}
+            >
+              4.3
+            </span>
+          </div>
+
+          {/* 💰 Price — Black */}
+          <p className="font-semibold text-lg mt-[3px]" style={{ color: "#000" }}>
+            ₹{product.price.toFixed(2)}
+          </p>
+        </div>
+
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{
+            height: hovered ? 40 : 0,
+            opacity: hovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+          className="overflow-hidden px-4 pb-3"
+        >
+          <motion.button
+            onClick={handleAddToCart}
+            className="w-full py-[6px] rounded-xl text-white font-medium text-sm shadow-md transition-colors duration-300"
+            style={{
+              backgroundColor: COLORS.PRIMARY_TEAL,
+            }}
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ backgroundColor: COLORS.DEEP_BLUE }}
+          >
+            Add to Cart
+          </motion.button>
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 }

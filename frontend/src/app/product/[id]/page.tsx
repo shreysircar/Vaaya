@@ -18,7 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
+import { notify } from "@/utils/notify";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
@@ -35,15 +35,20 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"description" | "care" | "disclaimer">("description");
 
   // 🟢 context hooks
   const { addToCart } = useCart();
-  const { toggleWishlist } = useWishlist();
+  const { wishlist, toggleWishlist } = useWishlist();
   const { user } = useAuth();
+
+
+const isWishlisted = Array.isArray(wishlist?.items)
+  ? wishlist.items.some((item: any) => item.productId === String(id))
+  : false;
+
 
   /* Fetch product */
   useEffect(() => {
@@ -62,55 +67,65 @@ export default function ProductDetailPage() {
     if (id) fetchProduct();
   }, [id]);
 
-  /* Wishlist Sync */
-  useEffect(() => {
-    if (!id) return;
-    const saved = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    setIsWishlisted(saved.includes(id));
-  }, [id]);
+
 
   // 🟢 Updated wishlist handler
-  const handleToggleWishlist = async () => {
-    if (!user) {
-      alert("Please log in to use Wishlist");
-      return;
-    }
+const handleToggleWishlist = async () => {
+  if (!user) {
+    notify.loginRequired("Please log in to use Wishlist");
+    return;
+  }
+
+  try {
     await toggleWishlist(String(id));
-    setIsWishlisted((prev) => !prev);
-  };
+
+    // show feedback based on whether it’s added or removed
+    if (isWishlisted) {
+      notify.info("Removed from Wishlist");
+    } else {
+      notify.success("Added to Wishlist");
+    }
+  } catch (error) {
+    console.error("Failed to toggle wishlist:", error);
+    notify.error("Something went wrong. Please try again.");
+  }
+};
+
 
   // 🟢 Add to cart logic
 const handleAddToCart = async () => {
   if (!user) {
-    alert("Please log in to add items to cart");
-    return;
-  }
+  notify.loginRequired("Please log in to add items to cart");
+  return;
+}
 
-  const res = await addToCart(String(id), quantity, product.price);
+const res = await addToCart(String(id), quantity, product.price);
 
-  if (!res.ok) {
-    alert(res.message || "❌ Could not add to cart — please check stock.");
-    return;
-  }
+if (!res.ok) {
+  notify.error(res.message || "Could not add to cart — please check stock.");
+  return;
+}
 
-  alert("✅ Added to cart successfully!");
-};
+notify.success("Added to cart successfully!");};
+
 
 
   // 🟢 Buy Now (add then go to checkout)
 const handleBuyNow = async () => {
-  if (!user) {
-    alert("Please log in to continue to checkout");
-    return;
-  }
+if (!user) {
+  notify.loginRequired("Please log in to continue to checkout");
+  return;
+}
 
-  const res = await addToCart(String(id), quantity, product.price);
-  if (!res.ok) {
-    alert(res.message || "❌ Could not add to cart — please check stock.");
-    return;
-  }
+const res = await addToCart(String(id), quantity, product.price);
+if (!res.ok) {
+  notify.error(res.message || "Could not add to cart — please check stock.");
+  return;
+}
 
-  router.push("/checkout");
+notify.success("Added to cart! Redirecting to checkout...");
+router.push("/checkout");
+
 };
 
 
@@ -118,7 +133,7 @@ const increaseQty = () => {
   if (quantity < product.stock) {
     setQuantity((q) => q + 1);
   } else {
-    alert(`Only ${product.stock} units available.`);
+  notify.info(`Only ${product.stock} units available.`);
   }
 };
 
@@ -460,4 +475,4 @@ const increaseQty = () => {
 
     </div> // ✅ End wrapper
   );
-}
+};

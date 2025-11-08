@@ -1,5 +1,6 @@
 "use client";
 
+import { notify } from "@/utils/notify";
 import { useCart } from "@/context/CartContext";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -19,43 +20,42 @@ export default function CartPage() {
     0
   );
 
-  // ✅ Updated logic: use PATCH route for +/− changes
-const handleQuantityChange = async (
-  productId: string,
-  currentQty: number,
-  action: "increase" | "decrease"
-) => {
-  // 🧠 prevent double-clicks while one request is in progress
-  if (loadingMap[productId]) return;
+  // ✅ Quantity logic with Vaaya toast notifications
+  const handleQuantityChange = async (
+    productId: string,
+    currentQty: number,
+    action: "increase" | "decrease"
+  ) => {
+    if (loadingMap[productId]) return;
 
-  try {
-    setLoadingMap((prev) => ({ ...prev, [productId]: true }));
+    try {
+      setLoadingMap((prev) => ({ ...prev, [productId]: true }));
 
-    if (action === "increase") {
-      const res = await updateCartItemQuantity(productId, +1);
-      if (!res.ok && res.message) alert(res.message);
-    } else {
-      if (currentQty > 1) {
-        const res = await updateCartItemQuantity(productId, -1);
-        if (!res.ok && res.message) alert(res.message);
+      if (action === "increase") {
+        const res = await updateCartItemQuantity(productId, +1);
+        if (!res.ok && res.message) notify.error(res.message);
+        else notify.success("Quantity increased");
       } else {
-        if (confirm("Remove this item from your cart?")) {
+        if (currentQty > 1) {
+          const res = await updateCartItemQuantity(productId, -1);
+          if (!res.ok && res.message) notify.error(res.message);
+          else notify.success("Quantity decreased");
+        } else {
           await removeFromCart(productId);
+          notify.info("Item removed from your cart");
         }
       }
+    } catch (err) {
+      console.error("Error updating quantity:", err);
+      notify.error("Something went wrong while updating quantity");
+    } finally {
+      setTimeout(() => {
+        setLoadingMap((prev) => ({ ...prev, [productId]: false }));
+      }, 200);
     }
-  } catch (err) {
-    console.error("Error updating quantity:", err);
-  } finally {
-    setTimeout(() => {
-      // tiny delay to avoid immediate re-click
-      setLoadingMap((prev) => ({ ...prev, [productId]: false }));
-    }, 200);
-  }
-};
+  };
 
-
-  // ✅ UI remains exactly the same
+  // ✅ UI remains the same
   return (
     <div className="min-h-screen bg-[#F5F5F4] py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
@@ -117,9 +117,10 @@ const handleQuantityChange = async (
 
                 <button
                   disabled={loadingMap[item.product.id]}
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
-                    removeFromCart(item.product.id);
+                    await removeFromCart(item.product.id);
+                    notify.info("Item removed from your cart");
                   }}
                   className="text-red-600 hover:text-red-700 text-sm font-medium transition"
                 >
@@ -137,7 +138,10 @@ const handleQuantityChange = async (
 
           <div className="flex gap-3">
             <button
-              onClick={clearCart}
+              onClick={() => {
+                clearCart();
+                notify.info("Your cart has been cleared");
+              }}
               className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition font-medium"
             >
               Clear Cart
