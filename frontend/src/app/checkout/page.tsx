@@ -2,7 +2,8 @@
 
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { applySaleToProduct, type Sale } from "@/utils/saleUtils";
 
 export default function CheckoutPage() {
   const { cart, checkoutOrder, refreshCart } = useCart();
@@ -10,6 +11,22 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [sales, setSales] = useState<Sale[]>([]);
+
+  // 🟢 Fetch active sales once
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sales/active`);
+        if (res.ok) {
+          const data = await res.json();
+          setSales(data);
+        }
+      } catch (err) {
+        console.error("Error fetching active sales:", err);
+      }
+    })();
+  }, []);
 
   if (!cart || !cart.items || cart.items.length === 0) {
     return (
@@ -25,31 +42,28 @@ export default function CheckoutPage() {
     );
   }
 
- const handleCheckout = async () => {
-  setLoading(true);
-  setError(null);
-  const res = await checkoutOrder();
-  setLoading(false);
+  const handleCheckout = async () => {
+    setLoading(true);
+    setError(null);
+    const res = await checkoutOrder();
+    setLoading(false);
 
-  if (!res.ok) {
-    // 🧠 Show the race condition message clearly
-    setError(
-      res.message?.includes("left")
-        ? `⚠️ ${res.message} Please review your cart.`
-        : res.message || "Something went wrong during checkout."
-    );
+    if (!res.ok) {
+      setError(
+        res.message?.includes("left")
+          ? `⚠️ ${res.message} Please review your cart.`
+          : res.message || "Something went wrong during checkout."
+      );
 
-    // 🕒 Delay cart refresh slightly so user can read the message first
-    setTimeout(() => {
-      refreshCart();
-    }, 1000);
-    return;
-  }
+      setTimeout(() => {
+        refreshCart();
+      }, 1000);
+      return;
+    }
 
-  setSuccess(true);
-  await refreshCart();
-};
-
+    setSuccess(true);
+    await refreshCart();
+  };
 
   if (success) {
     return (
@@ -66,6 +80,12 @@ export default function CheckoutPage() {
     );
   }
 
+  // 🧮 Compute total with discounted prices
+  const total = cart.items.reduce((sum: number, i: any) => {
+    const { finalPrice } = applySaleToProduct(i.product, sales);
+    return sum + finalPrice * i.quantity;
+  }, 0);
+
   return (
     <div className="min-h-screen bg-[#F5F5F4] py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6">
@@ -74,37 +94,54 @@ export default function CheckoutPage() {
         </h1>
 
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-            {error}
-          </div>
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>
         )}
 
+        {/* 🧾 Cart items with discount display */}
         <div className="space-y-3">
-          {cart.items.map((item: any) => (
-            <div
-              key={item.id}
-              className="flex justify-between border-b pb-2 text-gray-700"
-            >
-              <p>
-                {item.product.name} × {item.quantity}
-              </p>
-              <p>₹{(item.product.price * item.quantity).toFixed(2)}</p>
-            </div>
-          ))}
+          {cart.items.map((item: any) => {
+            const { finalPrice } = applySaleToProduct(item.product, sales);
+            const isDiscounted = finalPrice < item.product.price;
+
+            return (
+              <div
+                key={item.id}
+                className="flex justify-between border-b pb-2 text-gray-700"
+              >
+                <div>
+                  <p>
+                    {item.product.name} × {item.quantity}
+                  </p>
+
+                  {/* 🟢 Slashed price display */}
+                  {isDiscounted ? (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-[#025a6a] font-semibold">
+                        ₹{finalPrice.toFixed(2)}
+                      </span>
+                      <span className="text-gray-400 line-through">
+                        ₹{item.product.price.toFixed(2)}
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      ₹{item.product.price.toFixed(2)}
+                    </p>
+                  )}
+                </div>
+
+                <p className="font-medium text-gray-800">
+                  ₹{(finalPrice * item.quantity).toFixed(2)}
+                </p>
+              </div>
+            );
+          })}
         </div>
 
+        {/* 💰 Total */}
         <div className="mt-6 flex justify-between font-semibold text-lg">
           <p>Total:</p>
-          <p>
-            ₹
-            {cart.items
-              .reduce(
-                (sum: number, i: any) =>
-                  sum + (i.price || i.product.price) * i.quantity,
-                0
-              )
-              .toLocaleString("en-IN")}
-          </p>
+          <p>₹{total.toLocaleString("en-IN")}</p>
         </div>
 
         <div className="mt-8 flex justify-end">

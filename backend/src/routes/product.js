@@ -1,6 +1,8 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.js";
+import { isSaleActive, applySale, saleAppliesToProduct } from "../utils/saleUtils.js";
+
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -10,14 +12,46 @@ const prisma = new PrismaClient();
 /* -------------------------------------------------------------------------- */
 router.get("/", async (req, res) => {
   try {
+    // 🕓 Fetch active sales
+    const now = new Date();
+    const activeSales = await prisma.sale.findMany({
+      where: {
+        isActive: true,
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+      include: {
+        parentCategory: true,
+        subCategory: true,
+        product: true,
+      },
+    });
+
+    // 🧩 Fetch products as before
     const products = await prisma.product.findMany({
       include: {
         parentCategory: true,
         subCategory: true,
-        specifications: true, // ✅ include specs in list
+        specifications: true,
       },
     });
-    res.json(products);
+
+    // 🧮 Append discounted price if any active sale applies
+    const enriched = products.map((p) => {
+      const matchedSale = activeSales.find((s) => saleAppliesToProduct(s, p));
+      if (matchedSale && isSaleActive(matchedSale)) {
+        p.discountedPrice = applySale(p.price, matchedSale);
+        p.saleInfo = {
+          title: matchedSale.title,
+          discountType: matchedSale.discountType,
+          discountValue: matchedSale.discountValue,
+        };
+      }
+      return p;
+    });
+
+    res.json(enriched);
+
   } catch (error) {
     console.error("❌ Error fetching products:", error);
     res.status(500).json({
@@ -38,12 +72,38 @@ router.get("/:id", async (req, res) => {
       include: {
         parentCategory: true,
         subCategory: true,
-        specifications: true, // ✅ include specs
+        specifications: true,
       },
     });
 
     if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const now = new Date();
+    const activeSales = await prisma.sale.findMany({
+      where: {
+        isActive: true,
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+      include: {
+        parentCategory: true,
+        subCategory: true,
+        product: true,
+      },
+    });
+
+    const matchedSale = activeSales.find((s) => saleAppliesToProduct(s, product));
+    if (matchedSale && isSaleActive(matchedSale)) {
+      product.discountedPrice = applySale(product.price, matchedSale);
+      product.saleInfo = {
+        title: matchedSale.title,
+        discountType: matchedSale.discountType,
+        discountValue: matchedSale.discountValue,
+      };
+    }
+
     res.json(product);
+
   } catch (error) {
     console.error("❌ Error fetching product:", error);
     res.status(500).json({ message: "Failed to fetch product" });

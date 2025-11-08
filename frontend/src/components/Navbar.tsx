@@ -88,6 +88,8 @@ export default function Navbar() {
     fetchCategories();
   }, []);
 
+
+
   // === Debounced Search ===
   useEffect(() => {
     if (!searchTerm.trim()) {
@@ -188,7 +190,9 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+<header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+
+
       {/* === 🟦 TOPBAR === */}
       <div className="flex items-center justify-between h-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="w-20"></div>
@@ -324,7 +328,11 @@ export default function Navbar() {
       )}
 
       {/* === Category Bar === */}
-      <nav className="bg-white border-t border-gray-100 font-[Inter]">
+<nav
+  id="category-bar"
+  className="relative bg-white border-t border-gray-100 font-[Inter]"
+>
+
         <ul className="flex items-center justify-center space-x-10 py-3 font-medium text-gray-800 text-[0.95rem] tracking-wide">
           {categories.map((cat: any) => (
             <li
@@ -356,11 +364,15 @@ export default function Navbar() {
               </span>
 
               {cat.subcategories?.length > 0 && (
-                <div
-                  className="fixed left-0 top-[8rem] w-full bg-white/95 backdrop-blur-md border-t border-gray-100 
-                  shadow-[0_8px_30px_rgba(0,0,0,0.08)] opacity-0 invisible group-hover:visible group-hover:opacity-100 
-                  translate-y-3 group-hover:translate-y-0 transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] z-40"
-                >
+<div
+  className="fixed left-0 w-full bg-white/95 backdrop-blur-md border-t border-gray-100 
+  shadow-[0_8px_30px_rgba(0,0,0,0.08)] opacity-0 invisible group-hover:visible group-hover:opacity-100 
+  translate-y-3 group-hover:translate-y-0 transition-all duration-700 ease-[cubic-bezier(0.25,0.8,0.25,1)] z-[60]"
+  style={{
+    top: "calc(var(--navbar-height, 128px)+ 1px)",
+  }}
+>
+
                   <div className="max-w-7xl mx-auto px-10 py-10 grid grid-cols-5 gap-10">
 {cat.subcategories.map((sub: any) => (
   <div

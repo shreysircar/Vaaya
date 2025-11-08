@@ -1,5 +1,7 @@
 import express from "express";
 import prisma from "../prismaClient.js";
+import { isSaleActive, applySale, saleAppliesToProduct } from "../utils/saleUtils.js";
+
 
 const router = express.Router();
 
@@ -7,19 +9,78 @@ const router = express.Router();
 router.get("/:userId", async (req, res) => {
   const { userId } = req.params;
   try {
+    // 🟢 1️⃣ Fetch the user's cart with product info
     const cart = await prisma.cart.findFirst({
       where: { userId },
       include: {
         items: {
-          include: {
-            product: true,
-          },
-            orderBy: { createdAt: "asc" },
+          include: { product: true },
+          orderBy: { createdAt: "asc" },
         },
       },
     });
 
-    res.json(cart || { items: [] });
+    if (!cart) return res.json({ items: [] });
+
+    // 🟢 2️⃣ Fetch all currently active sales
+    const now = new Date();
+    const activeSales = await prisma.sale.findMany({
+      where: {
+        isActive: true,
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+      include: {
+        parentCategory: true,
+        subCategory: true,
+        product: true,
+      },
+    });
+
+    // 🧮 3️⃣ Enrich cart items with discounts
+    let total = 0;
+    let discountedTotal = 0;
+
+    const enrichedItems = cart.items.map((item) => {
+      const product = item.product;
+      let finalPrice = product.price;
+      let discountInfo = null;
+
+      const matchedSale = activeSales.find((sale) => saleAppliesToProduct(sale, product));
+      if (matchedSale && isSaleActive(matchedSale)) {
+        finalPrice = applySale(product.price, matchedSale);
+        discountInfo = {
+          title: matchedSale.title,
+          discountType: matchedSale.discountType,
+          discountValue: matchedSale.discountValue,
+        };
+      }
+
+      const itemTotal = product.price * item.quantity;
+      const itemDiscountedTotal = finalPrice * item.quantity;
+
+      total += itemTotal;
+      discountedTotal += itemDiscountedTotal;
+
+      return {
+        ...item,
+        product: {
+          ...product,
+          discountedPrice: discountInfo ? finalPrice : null,
+          saleInfo: discountInfo,
+        },
+      };
+    });
+
+    const response = {
+      ...cart,
+      items: enrichedItems,
+      total,
+      discountedTotal,
+    };
+
+    res.json(response);
+
   } catch (err) {
     console.error("Error fetching cart:", err);
     res.status(500).json({ error: "Failed to fetch cart" });

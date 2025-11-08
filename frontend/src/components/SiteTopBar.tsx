@@ -8,16 +8,20 @@ export default function SiteTopBar() {
   const pathname = usePathname();
   const [announcement, setAnnouncement] = useState<string | null>(null);
 
-  if (pathname.startsWith("/checkout") || pathname.startsWith("/admin")) return null;
-
+  // ✅ Always call hooks unconditionally
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/announcement`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data?.message) setAnnouncement(data.message);
       })
       .catch(console.error);
   }, []);
+
+  // ✅ Conditional rendering AFTER all hooks
+  if (pathname?.startsWith("/checkout") || pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   if (!announcement) return null;
 

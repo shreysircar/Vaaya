@@ -3,10 +3,28 @@
 import { useWishlist } from "@/context/WishlistContext";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { applySaleToProduct, type Sale } from "@/utils/saleUtils";
 
 export default function WishlistPage() {
   const { wishlist, loading, toggleWishlist, clearWishlist } = useWishlist();
   const router = useRouter();
+  const [sales, setSales] = useState<Sale[]>([]);
+
+  // 🟢 Fetch active sales
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/sales/active`);
+        if (res.ok) {
+          const data = await res.json();
+          setSales(data);
+        }
+      } catch (err) {
+        console.error("Error fetching active sales:", err);
+      }
+    })();
+  }, []);
 
   if (loading) return <div className="p-10 text-gray-600">Loading your wishlist...</div>;
   if (!wishlist || !wishlist.items || wishlist.items.length === 0)
@@ -19,41 +37,61 @@ export default function WishlistPage() {
 
         {/* 💛 Wishlist Items */}
         <div className="space-y-5">
-          {wishlist.items.map((item: any) => (
-            <div
-              key={item.id}
-              className="flex justify-between items-center border border-gray-200 rounded-lg p-4 bg-white hover:shadow-sm transition cursor-pointer"
-            >
-              {/* 🖼️ Product Image + Name (clickable) */}
-              <div
-                className="flex items-center gap-4"
-                onClick={() => router.push(`/product/${item.product.id}`)}
-              >
-                <Image
-                  src={item.product.imageUrl || "/placeholder.png"}
-                  alt={item.product.name}
-                  width={80}
-                  height={80}
-                  className="rounded-md object-cover"
-                />
-                <div>
-                  <h2 className="font-medium text-gray-800">{item.product.name}</h2>
-                  <p className="text-sm text-gray-500">₹{item.product.price.toFixed(2)}</p>
-                </div>
-              </div>
+          {wishlist.items.map((item: any) => {
+            const { finalPrice } = applySaleToProduct(item.product, sales);
+            const isDiscounted = finalPrice < item.product.price;
 
-              {/* ❤️ Remove Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleWishlist(item.product.id);
-                }}
-                className="text-red-600 hover:text-red-700 text-sm font-medium transition"
+            return (
+              <div
+                key={item.id}
+                className="flex justify-between items-center border border-gray-200 rounded-lg p-4 bg-white hover:shadow-sm transition cursor-pointer"
               >
-                Remove
-              </button>
-            </div>
-          ))}
+                {/* 🖼️ Product Image + Name (clickable) */}
+                <div
+                  className="flex items-center gap-4"
+                  onClick={() => router.push(`/product/${item.product.id}`)}
+                >
+                  <Image
+                    src={item.product.imageUrl || "/placeholder.png"}
+                    alt={item.product.name}
+                    width={80}
+                    height={80}
+                    className="rounded-md object-cover"
+                  />
+                  <div>
+                    <h2 className="font-medium text-gray-800">{item.product.name}</h2>
+
+                    {/* 🟢 Discounted Price Display */}
+                    {isDiscounted ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#025a6a] font-semibold">
+                          ₹{finalPrice.toFixed(2)}
+                        </span>
+                        <span className="text-gray-400 line-through text-sm">
+                          ₹{item.product.price.toFixed(2)}
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        ₹{item.product.price.toFixed(2)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* ❤️ Remove Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleWishlist(item.product.id);
+                  }}
+                  className="text-red-600 hover:text-red-700 text-sm font-medium transition"
+                >
+                  Remove
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {/* 💼 Footer */}

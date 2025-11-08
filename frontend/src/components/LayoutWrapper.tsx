@@ -7,7 +7,8 @@ import SiteTopBar from "./SiteTopBar"; // ✅ Added import
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdminRoute = pathname.startsWith("/admin"); // hide navbar/footer for admin routes
+  // ✅ Prevent runtime error during initial render
+  const isAdminRoute = pathname?.startsWith("/admin") ?? false; // hide navbar/footer for admin routes
 
   return (
     <>

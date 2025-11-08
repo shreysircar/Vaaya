@@ -1,6 +1,8 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middleware/auth.js";
+import { isSaleActive, applySale, saleAppliesToProduct } from "../utils/saleUtils.js";
+
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -17,13 +19,50 @@ router.get("/", authMiddleware, async (req, res) => {
     const orders = await prisma.order.findMany({
       include: {
         user: { select: { id: true, name: true, email: true } },
-        items: { include: { product: { select: { id: true, name: true, price: true } } } },
+        items: {
+          include: { product: { include: { parentCategory: true, subCategory: true } } },
+        },
       },
       orderBy: { createdAt: "desc" },
       skip,
       take: Number(limit),
     });
-    res.json(orders);
+
+    // 🟢 Fetch active sales
+    const now = new Date();
+    const activeSales = await prisma.sale.findMany({
+      where: {
+        isActive: true,
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+      include: { parentCategory: true, subCategory: true, product: true },
+    });
+
+    // 🧮 Enrich each order with sale info
+    const enrichedOrders = orders.map((order) => {
+      const enrichedItems = order.items.map((item) => {
+        const product = item.product;
+        const matchedSale = activeSales.find((s) => saleAppliesToProduct(s, product));
+
+        if (matchedSale && isSaleActive(matchedSale)) {
+          const discountedPrice = applySale(product.price, matchedSale);
+          product.discountedPrice = discountedPrice;
+          product.saleInfo = {
+            title: matchedSale.title,
+            discountType: matchedSale.discountType,
+            discountValue: matchedSale.discountValue,
+          };
+        }
+
+        return { ...item, product };
+      });
+
+      return { ...order, items: enrichedItems };
+    });
+
+    res.json(enrichedOrders);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -38,11 +77,45 @@ router.get("/:id", authMiddleware, async (req, res) => {
       where: { id },
       include: {
         user: { select: { id: true, name: true, email: true } },
-        items: { include: { product: { select: { id: true, name: true, price: true } } } },
+        items: {
+          include: { product: { include: { parentCategory: true, subCategory: true } } },
+        },
       },
     });
+
     if (!order) return res.status(404).json({ message: "Order not found" });
-    res.json(order);
+
+    // 🟢 Fetch active sales
+    const now = new Date();
+    const activeSales = await prisma.sale.findMany({
+      where: {
+        isActive: true,
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+      include: { parentCategory: true, subCategory: true, product: true },
+    });
+
+    // 🧮 Enrich items
+    const enrichedItems = order.items.map((item) => {
+      const product = item.product;
+      const matchedSale = activeSales.find((s) => saleAppliesToProduct(s, product));
+
+      if (matchedSale && isSaleActive(matchedSale)) {
+        const discountedPrice = applySale(product.price, matchedSale);
+        product.discountedPrice = discountedPrice;
+        product.saleInfo = {
+          title: matchedSale.title,
+          discountType: matchedSale.discountType,
+          discountValue: matchedSale.discountValue,
+        };
+      }
+
+      return { ...item, product };
+    });
+
+    res.json({ ...order, items: enrichedItems });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

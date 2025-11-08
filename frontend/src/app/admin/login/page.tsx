@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_URL } from "@/utils/api"; // ✅ import your base URL
+import { useAuth } from "@/context/AuthContext";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { login } = useAuth(); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -37,12 +39,15 @@ export default function AdminLoginPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      await login(data.token); // ✅ (3) ADD THIS LINE
+
       router.push("/admin"); // redirect to dashboard
     } catch (err) {
       console.error(err);
       setError("Server error. Try again.");
     }
   };
+
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-50">

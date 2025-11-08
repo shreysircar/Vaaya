@@ -1,5 +1,7 @@
 import express from "express";
 import prisma from "../prismaClient.js";
+import { isSaleActive, applySale, saleAppliesToProduct } from "../utils/saleUtils.js";
+
 
 const router = express.Router();
 
@@ -7,12 +9,50 @@ const router = express.Router();
 router.get("/:userId", async (req, res) => {
   const { userId } = req.params;
   try {
+    // 🟢 1️⃣ Fetch wishlist with products
     const wishlist = await prisma.wishlist.findFirst({
       where: { userId },
       include: {
         items: { include: { product: true } },
       },
     });
+
+    if (!wishlist) return res.json({ items: [] });
+
+    // 🟢 2️⃣ Fetch active sales
+    const now = new Date();
+    const activeSales = await prisma.sale.findMany({
+      where: {
+        isActive: true,
+        startDate: { lte: now },
+        endDate: { gte: now },
+      },
+      include: {
+        parentCategory: true,
+        subCategory: true,
+        product: true,
+      },
+    });
+
+    // 🧮 3️⃣ Enrich wishlist products with sale info
+    const enrichedItems = wishlist.items.map((item) => {
+      const product = item.product;
+      const matchedSale = activeSales.find((sale) => saleAppliesToProduct(sale, product));
+
+      if (matchedSale && isSaleActive(matchedSale)) {
+        product.discountedPrice = applySale(product.price, matchedSale);
+        product.saleInfo = {
+          title: matchedSale.title,
+          discountType: matchedSale.discountType,
+          discountValue: matchedSale.discountValue,
+        };
+      }
+
+      return { ...item, product };
+    });
+
+    const response = { ...wishlist, items: enrichedItems };
+    res.json(response);
 
     res.json(wishlist || { items: [] });
   } catch (err) {

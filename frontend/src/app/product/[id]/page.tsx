@@ -1,5 +1,5 @@
 "use client";
-
+import { apiRequest } from "@/utils/api";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation"; // 🟢 added router import
 import { motion } from "framer-motion";
@@ -22,12 +22,22 @@ import { notify } from "@/utils/notify";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
+import { applySaleToProduct } from "@/utils/saleUtils";
 
 const DEEP_CHARCOAL = "#292524";
 const MUSTARD_LIGHT = "#dec08a";
 const DEEP_BLUE = "#4a9eb3";
 const TEAL_PRIMARY = "#025a6a";
 const TEAL_DARK = "#014c57";
+
+interface Sale {
+  id: string;
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  parentCategoryId?: string | null;
+  subCategoryId?: string | null;
+  productId?: string | null;
+}
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -38,6 +48,10 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"description" | "care" | "disclaimer">("description");
+
+  // ✅ Sale states
+const [finalPrice, setFinalPrice] = useState<number | null>(null);
+const [hasSale, setHasSale] = useState(false);
 
   // 🟢 context hooks
   const { addToCart } = useCart();
@@ -67,6 +81,25 @@ const isWishlisted = Array.isArray(wishlist?.items)
     if (id) fetchProduct();
   }, [id]);
 
+// ✅ Fetch active sales and compute discounted price
+useEffect(() => {
+  const fetchSales = async () => {
+    try {
+      const activeSales = await apiRequest<Sale[]>("/api/sales/active", { method: "GET" });
+      if (product) {
+        const { finalPrice, sale } = applySaleToProduct(product, activeSales || []);
+        setFinalPrice(finalPrice);
+        setHasSale(Boolean(sale));
+      }
+    } catch (err) {
+      console.error("Sale fetch error:", err);
+      setFinalPrice(null);
+      setHasSale(false);
+    }
+  };
+
+  if (product) fetchSales();
+}, [product]);
 
 
   // 🟢 Updated wishlist handler
@@ -261,12 +294,24 @@ const increaseQty = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 mb-6">
-              <Tag className="w-5 h-5 text-[#292524]" />
-              <span className="text-2xl font-semibold text-[#292524]">
-                ₹{product.price.toLocaleString()}
-              </span>
-            </div>
+<div className="flex items-center gap-2 mb-6">
+  <Tag className="w-5 h-5 text-[#292524]" />
+  {hasSale ? (
+    <>
+      <span className="text-xl line-through text-gray-500">
+        ₹{product.price.toLocaleString()}
+      </span>
+      <span className="text-2xl font-semibold text-[#292524]">
+        ₹{finalPrice?.toLocaleString()}
+      </span>
+    </>
+  ) : (
+    <span className="text-2xl font-semibold text-[#292524]">
+      ₹{product.price.toLocaleString()}
+    </span>
+  )}
+</div>
+
 
             <div className="flex items-center mb-6">
               {product.stock > 0 ? (
