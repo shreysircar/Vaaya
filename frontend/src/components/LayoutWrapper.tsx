@@ -16,7 +16,8 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       {!isAdminRoute && <SiteTopBar />}
 
       {!isAdminRoute && <Navbar />}
-      <main className="flex-grow w-full">{children}</main>
+      <main className="flex-grow w-full pt-[156px]">{children}</main>
+
       {!isAdminRoute && <Footer />}
     </>
   );

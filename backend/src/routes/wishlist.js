@@ -4,7 +4,6 @@ import { isSaleActive, applySale, saleAppliesToProduct } from "../utils/saleUtil
 
 
 const router = express.Router();
-
 // ✅ GET user's wishlist
 router.get("/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -17,7 +16,9 @@ router.get("/:userId", async (req, res) => {
       },
     });
 
-    if (!wishlist) return res.json({ items: [] });
+    if (!wishlist) {
+      return res.json({ items: [] });
+    }
 
     // 🟢 2️⃣ Fetch active sales
     const now = new Date();
@@ -37,7 +38,9 @@ router.get("/:userId", async (req, res) => {
     // 🧮 3️⃣ Enrich wishlist products with sale info
     const enrichedItems = wishlist.items.map((item) => {
       const product = item.product;
-      const matchedSale = activeSales.find((sale) => saleAppliesToProduct(sale, product));
+      const matchedSale = activeSales.find((sale) =>
+        saleAppliesToProduct(sale, product)
+      );
 
       if (matchedSale && isSaleActive(matchedSale)) {
         product.discountedPrice = applySale(product.price, matchedSale);
@@ -51,13 +54,12 @@ router.get("/:userId", async (req, res) => {
       return { ...item, product };
     });
 
-    const response = { ...wishlist, items: enrichedItems };
-    res.json(response);
+    // ✅ 4️⃣ Return only one response
+    return res.json({ ...wishlist, items: enrichedItems });
 
-    res.json(wishlist || { items: [] });
   } catch (err) {
     console.error("Error fetching wishlist:", err);
-    res.status(500).json({ error: "Failed to fetch wishlist" });
+    return res.status(500).json({ error: "Failed to fetch wishlist" });
   }
 });
 

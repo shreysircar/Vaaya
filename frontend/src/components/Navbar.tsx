@@ -190,7 +190,7 @@ export default function Navbar() {
   };
 
   return (
-<header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+<header className="fixed top-[35px] left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
 
 
       {/* === 🟦 TOPBAR === */}

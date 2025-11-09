@@ -30,7 +30,8 @@ export default function SiteTopBar() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full text-center text-sm font-medium py-2 px-4"
+      className="fixed top-0 left-0 right-0 z-[60] w-full text-center text-sm font-medium py-2 px-4 shadow-sm"
+
       style={{
         backgroundColor: "#025a6a",
         color: "#ffffff",
