@@ -139,7 +139,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* 💰 Total */}
-        <div className="mt-6 flex justify-between font-semibold text-lg">
+        <div className="mt-6 flex justify-between font-semibold text-lg text-gray-900">
           <p>Total:</p>
           <p>₹{total.toLocaleString("en-IN")}</p>
         </div>

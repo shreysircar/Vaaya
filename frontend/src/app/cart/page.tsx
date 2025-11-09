@@ -172,7 +172,7 @@ export default function CartPage() {
                 clearCart();
                 notify.info("Your cart has been cleared");
               }}
-              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition font-medium"
+          className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition font-medium"
             >
               Clear Cart
             </button>

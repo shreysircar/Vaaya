@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/utils/api";
-import { notify } from "@/utils/notify";
 
 interface Sale {
   id: string;
@@ -61,7 +60,7 @@ export default function SalesAdminPage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      notify.error("You are not logged in as admin");
+      alert("You are not logged in as admin");
       setLoading(false);
       return;
     }
@@ -85,7 +84,7 @@ export default function SalesAdminPage() {
       console.log("📦 Products:", prods);
     } catch (err) {
       console.error("❌ Filter fetch error:", err);
-      notify.error("Failed to load dropdown data");
+      alert("Failed to load dropdown data");
     }
   };
 
@@ -96,7 +95,7 @@ export default function SalesAdminPage() {
       setSales(data);
     } catch (err) {
       console.error("❌ fetchSales error:", err);
-      notify.error("Failed to fetch sales");
+      alert("Failed to fetch sales");
     } finally {
       setLoading(false);
     }
@@ -146,12 +145,12 @@ export default function SalesAdminPage() {
       const url = editingSale ? `/api/sales/${editingSale.id}` : "/api/sales";
 
       await apiRequest<Sale>(url, { method, body: formData, token });
-      notify.success(editingSale ? "Sale updated successfully" : "Sale created");
+      alert(editingSale ? "Sale updated successfully" : "Sale created");
       setModalOpen(false);
       fetchSales(token!);
     } catch (err) {
       console.error("❌ Error saving sale:", err);
-      notify.error("Failed to save sale");
+      alert("Failed to save sale");
     }
   };
 
@@ -161,10 +160,10 @@ export default function SalesAdminPage() {
     try {
       const token = localStorage.getItem("token");
       await apiRequest(`/api/sales/${id}`, { method: "DELETE", token });
-      notify.success("Sale deleted");
+      alert("Sale deleted");
       fetchSales(token!);
     } catch (err) {
-      notify.error("Failed to delete sale");
+      alert("Failed to delete sale");
     }
   };
 
