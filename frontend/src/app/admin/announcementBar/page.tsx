@@ -101,9 +101,11 @@ export default function AnnouncementBarPage() {
 
   return (
     <div className="p-6 space-y-8">
-      <h1 className="text-2xl font-semibold text-[#025a6a]">
-        📢 Announcement Bar Management
-      </h1>
+      <h1 className="text-3xl font-semibold text-black">
+   Announcement Bar Management
+</h1>
+
+   
 
       {/* Create / Edit Form */}
       <form

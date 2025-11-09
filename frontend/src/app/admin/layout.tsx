@@ -45,8 +45,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Users", href: "/admin/users" },
     { name: "Categories", href: "/admin/categories" },
     { name: "Homepage Sections", href: "/admin/homepage-sections" },
-    { name: "Announcement Bar", href: "/admin/announcementBar"},
-    { name: "Sales & Discounts", href: "/admin/sales"}
+    { name: "Announcement Bar", href: "/admin/announcementBar" },
+    { name: "Sales & Discounts", href: "/admin/sales" },
   ];
 
   const handleLogout = () => {
@@ -55,12 +55,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push("/admin/login");
   };
 
-  // Render layout while checking auth
   if (checkingAuth) return null;
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Only show sidebar if user is logged in and not on login page */}
+    // ✅ FIXED: prevents double scroll & top gap
+// ✅ Remove top gap by anchoring admin layout to the top of viewport
+<div className="fixed inset-0 flex bg-gray-50 overflow-hidden">
+
+      {/* Sidebar */}
       {user && pathname !== "/admin/login" && (
         <aside className="w-64 bg-white shadow-lg flex flex-col border-r border-gray-200">
           <div className="p-6 font-bold text-2xl text-gray-900 border-b border-gray-200">
@@ -73,7 +75,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`block p-2 rounded-lg font-medium text-gray-800 hover:text-blue-700 hover:bg-blue-50 transition-all ${
-                  pathname === item.href ? "bg-blue-100 text-blue-800 font-semibold" : ""
+                  pathname === item.href
+                    ? "bg-blue-100 text-blue-800 font-semibold"
+                    : ""
                 }`}
               >
                 {item.name}
@@ -90,6 +94,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </aside>
       )}
 
+      {/* Main content */}
       <main className="flex-1 overflow-y-auto p-8 text-gray-900">{children}</main>
     </div>
   );

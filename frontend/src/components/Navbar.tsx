@@ -71,7 +71,27 @@ export default function Navbar() {
   const [searchResults, setSearchResults] = useState<{ products: any[]; parentCategories: any[] } | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  useEffect(() => setIsMounted(true), []);
+const [topOffset, setTopOffset] = useState(35);
+
+useEffect(() => {
+  setIsMounted(true);
+
+  // 🧠 Detect topbar presence initially
+  const topBar = document.querySelector(".site-topbar-active");
+  setTopOffset(topBar ? 35 : 0);
+
+  // 🧩 Watch for changes (e.g. announcement added/removed dynamically)
+  const observer = new MutationObserver(() => {
+    const currentTopBar = document.querySelector(".site-topbar-active");
+    setTopOffset(currentTopBar ? 35 : 0);
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  return () => observer.disconnect();
+}, []);
+
+
 
   // === Fetch categories ===
   useEffect(() => {
@@ -190,7 +210,10 @@ export default function Navbar() {
   };
 
   return (
-<header className="fixed top-[35px] left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+<header
+  className="fixed left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm"
+  style={{ top: `${topOffset}px` }} // 🆕 Dynamically adjusts based on SiteTopBar
+>
 
 
       {/* === 🟦 TOPBAR === */}
