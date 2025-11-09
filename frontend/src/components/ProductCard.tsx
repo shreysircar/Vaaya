@@ -10,16 +10,10 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-hot-toast";
 import { apiRequest } from "@/utils/api";
 import { applySaleToProduct } from "@/utils/saleUtils";
+import type { Sale } from "@/utils/saleUtils";
+
 
 /* ---------------- TYPES ---------------- */
-interface Sale {
-  id: string;
-  discountType: "percentage" | "fixed";
-  discountValue: number;
-  parentCategoryId?: string | null;
-  subCategoryId?: string | null;
-  productId?: string | null;
-}
 
 export interface Product {
   id: string;
@@ -171,13 +165,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       <motion.div
         animate={{ y: hovered ? -10 : 0 }}
-        transition={{ duration: 0.35, ease: "easeInOut" }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
         className="flex flex-col justify-between flex-1 h-full"
       >
         <motion.div
           className="relative w-full overflow-hidden bg-white"
           animate={{ height: hovered ? 195 : 225 }}
-          transition={{ duration: 0.35, ease: "easeInOut" }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
         >
           <motion.img
             src={product.imageUrl || "/images/placeholder.jpg"}
@@ -248,7 +242,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             height: hovered ? 40 : 0,
             opacity: hovered ? 1 : 0,
           }}
-          transition={{ duration: 0.35, ease: "easeInOut" }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
           className="overflow-hidden px-4 pb-3"
         >
           <motion.button
