@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
+
 
 interface User {
   isAdmin: boolean;
@@ -65,9 +67,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       {user && pathname !== "/admin/login" && (
         <aside className="w-64 bg-white shadow-lg flex flex-col border-r border-gray-200">
-          <div className="p-6 font-bold text-2xl text-gray-900 border-b border-gray-200">
-            Admin Panel
-          </div>
+{/* ✅ Brand Logo instead of "Admin Panel" */}
+<div className="p-6 border-b border-gray-200 flex justify-center">
+  <Image
+    src="/logo1.svg"
+    alt="Brand Logo"
+    width={120}
+    height={40}
+    priority
+    style={{ objectFit: "contain" }}
+  />
+</div>
+
+
 
           <nav className="flex-1 p-4 space-y-2">
             {navItems.map((item) => (

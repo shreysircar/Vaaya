@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_URL } from "@/utils/api"; // ✅ import your base URL
+import { API_URL } from "@/utils/api";
 import { useAuth } from "@/context/AuthContext";
+import Image from "next/image";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -39,15 +40,13 @@ export default function AdminLoginPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      await login(data.token); // ✅ (3) ADD THIS LINE
-
-      router.push("/admin"); // redirect to dashboard
+      await login(data.token);
+      router.push("/admin");
     } catch (err) {
       console.error(err);
       setError("Server error. Try again.");
     }
   };
-
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -55,6 +54,18 @@ export default function AdminLoginPage() {
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-2xl shadow-lg w-96 border border-gray-100"
       >
+        {/* 🖼️ Brand Logo */}
+        <div className="flex justify-center mb-4">
+          <Image
+            src="/logo1.svg"
+            alt="Brand Logo"
+            width={80}
+            height={80}
+            className="object-contain"
+            priority
+          />
+        </div>
+
         <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">
           Admin Login
         </h1>
@@ -91,7 +102,7 @@ export default function AdminLoginPage() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition-colors"
+           className="w-full bg-[#dec08a] text-gray-900 font-semibold py-2 rounded hover:bg-[#cda86f] transition-colors"
         >
           Login
         </button>
