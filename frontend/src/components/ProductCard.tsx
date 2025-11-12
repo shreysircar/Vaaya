@@ -22,6 +22,14 @@ export interface Product {
   imageUrl?: string;
   parentCategoryId?: string;
   subCategoryId?: string;
+
+  // 🧩 optional sale fields (from backend)
+  discountedPrice?: number;
+  saleInfo?: {
+    title?: string;
+    discountType?: "PERCENTAGE" | "FLAT";
+    discountValue?: number;
+  };
 }
 
 interface ProductCardProps {
@@ -51,16 +59,17 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [finalPrice, setFinalPrice] = useState(product.price);
   const [hasSale, setHasSale] = useState(false);
 
-  /* ---------------- SALE FETCH ---------------- */
-  useEffect(() => {
-    // prevent hydration flicker
-    if (typeof window === "undefined") return;
-
-    const fetchActiveSales = async () => {
+/* ---------------- SALE LOGIC ---------------- */
+useEffect(() => {
+  if (product.discountedPrice && product.discountedPrice < product.price) {
+    // ✅ use backend-provided discount
+    setFinalPrice(product.discountedPrice);
+    setHasSale(true);
+  } else {
+    // 🧩 fallback (in case some products don’t have enriched sale data)
+    const fetchAndApplySale = async () => {
       try {
-        const activeSales = await apiRequest<Sale[]>("/api/sales/active", {
-          method: "GET",
-        });
+        const activeSales = await apiRequest<Sale[]>("/api/sales/active", { method: "GET" });
         const { finalPrice, sale } = applySaleToProduct(product, activeSales || []);
         setFinalPrice(finalPrice);
         setHasSale(Boolean(sale));
@@ -70,9 +79,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         setHasSale(false);
       }
     };
-
-    fetchActiveSales();
-  }, [product]);
+    fetchAndApplySale();
+  }
+}, [product]);
 
   /* ---------------- WISHLIST ---------------- */
   useEffect(() => {
@@ -179,6 +188,32 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
 
+{/* 🏷️ Discount Badge */}
+{hasSale && product.saleInfo?.discountValue && (
+  <motion.div
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3, ease: "easeOut" }}
+    className="absolute top-3 left-3 px-[8px] py-[3px] rounded-md text-[11px] font-semibold uppercase shadow-sm"
+    style={{
+      background:
+        product.saleInfo?.discountType === "PERCENTAGE"
+          ? "#000" // 🖤 Black for percentage discount
+          : "linear-gradient(135deg, #025a6a, #4a9eb3)", // 🩵 Teal for flat discount
+      color: "white",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+      letterSpacing: "0.3px",
+      lineHeight: "1",
+    }}
+  >
+    {product.saleInfo?.discountType === "PERCENTAGE"
+      ? `${product.saleInfo.discountValue}% OFF`
+      : `₹${product.saleInfo.discountValue} OFF`}
+  </motion.div>
+)}
+
+
+
           <motion.button
             onClick={handleToggleWishlist}
             whileTap={{ scale: 0.9 }}
@@ -224,16 +259,28 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* 💰 Price Section */}
-          <div className="flex items-baseline gap-2 mt-[3px]">
-            {hasSale && (
-              <p className="text-base line-through font-medium" style={{ color: "#888" }}>
-                ₹{product.price.toFixed(2)}
-              </p>
-            )}
-            <p className="font-semibold text-lg" style={{ color: "#000" }}>
-              ₹{finalPrice.toFixed(2)}
-            </p>
-          </div>
+<div className="flex items-baseline gap-2 mt-[3px]">
+  {hasSale ? (
+    <>
+      <p className="text-[15px] line-through font-medium" style={{ color: "#888" }}>
+        ₹{product.price.toFixed(2)}
+      </p>
+      <p
+        className="font-semibold text-lg"
+        style={{
+          color: COLORS.PRIMARY_TEAL,
+        }}
+      >
+        ₹{finalPrice.toFixed(2)}
+      </p>
+    </>
+  ) : (
+    <p className="font-semibold text-lg" style={{ color: "#000" }}>
+      ₹{product.price.toFixed(2)}
+    </p>
+  )}
+</div>
+
         </div>
 
         <motion.div

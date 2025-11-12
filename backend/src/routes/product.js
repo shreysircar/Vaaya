@@ -43,7 +43,7 @@ router.get("/", async (req, res) => {
         p.discountedPrice = applySale(p.price, matchedSale);
         p.saleInfo = {
           title: matchedSale.title,
-          discountType: matchedSale.discountType,
+          discountType: matchedSale.discountType?.toUpperCase() || "FLAT",
           discountValue: matchedSale.discountValue,
         };
       }
@@ -97,7 +97,7 @@ router.get("/:id", async (req, res) => {
       product.discountedPrice = applySale(product.price, matchedSale);
       product.saleInfo = {
         title: matchedSale.title,
-        discountType: matchedSale.discountType,
+        discountType: matchedSale.discountType?.toUpperCase() || "FLAT",
         discountValue: matchedSale.discountValue,
       };
     }

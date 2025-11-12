@@ -20,11 +20,14 @@ export function applySale(price, sale) {
   const discountValue = parseFloat(sale.discountValue) || 0;
   let discounted = price;
 
-  if (sale.discountType === "percentage") {
-    discounted = price - (price * discountValue) / 100;
-  } else if (sale.discountType === "fixed") {
-    discounted = price - discountValue;
-  }
+const type = sale.discountType?.toUpperCase();
+
+if (type === "PERCENTAGE") {
+  discounted = price - (price * discountValue) / 100;
+} else if (type === "FLAT") {
+  discounted = price - discountValue;
+}
+
 
   // Avoid negative or NaN prices
   if (isNaN(discounted) || discounted < 0) discounted = 0;

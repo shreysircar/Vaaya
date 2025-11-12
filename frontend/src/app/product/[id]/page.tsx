@@ -23,6 +23,8 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
 import { applySaleToProduct } from "@/utils/saleUtils";
+import type { Sale } from "@/utils/saleUtils";
+
 
 const DEEP_CHARCOAL = "#292524";
 const MUSTARD_LIGHT = "#dec08a";
@@ -30,14 +32,6 @@ const DEEP_BLUE = "#4a9eb3";
 const TEAL_PRIMARY = "#025a6a";
 const TEAL_DARK = "#014c57";
 
-interface Sale {
-  id: string;
-  discountType: "percentage" | "fixed";
-  discountValue: number;
-  parentCategoryId?: string | null;
-  subCategoryId?: string | null;
-  productId?: string | null;
-}
 
 export default function ProductDetailPage() {
   const { id } = useParams();

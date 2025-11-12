@@ -1,13 +1,12 @@
 export interface Sale {
   id: string;
-  discountType: "percentage" | "fixed";
+  discountType: "PERCENTAGE" | "FLAT" | "percentage" | "fixed";
   discountValue: number;
   parentCategoryId?: string | null;
   subCategoryId?: string | null;
   productId?: string | null;
-    // 🕒 add these (to match your backend)
-  startDate: string; // ISO string
-  endDate: string;   // ISO string
+  startDate: string;
+  endDate: string;
 }
 
 export function applySaleToProduct(product: any, sales: Sale[]) {
@@ -21,8 +20,11 @@ export function applySaleToProduct(product: any, sales: Sale[]) {
 
   if (!sale) return { finalPrice: product.price, sale: null };
 
+  // ✅ Normalize to uppercase to handle both backend + frontend variations
+  const type = sale.discountType?.toUpperCase();
+
   const discount =
-    sale.discountType === "percentage"
+    type === "PERCENTAGE"
       ? (product.price * sale.discountValue) / 100
       : sale.discountValue;
 
