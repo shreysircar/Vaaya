@@ -2,6 +2,8 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
+import OrderTracker from "@/components/OrderTracker";
+
 
 const DEEP_CHARCOAL = "#292524";
 const SLATE_TEAL = "#025a6a";
@@ -154,6 +156,7 @@ const OrdersView = () => {
                 </div>
               ))}
             </div>
+            <OrderTracker status={order.status} />
           </div>
         ))
       )}
