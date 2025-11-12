@@ -7,7 +7,7 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 // Allowed order statuses
-const allowedStatuses = ["pending", "shipped", "delivered", "cancelled"];
+const allowedStatuses = ["pending", "packing", "shipped", "delivered", "cancelled"];
 
 /* =========================================================
  ✅ GET /api/orders/user → Fetch all orders for the logged-in user
@@ -221,7 +221,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
 });
 
 /* =========================================================
- ⚙️ PUT /api/orders/:id/status → Update order status
+ ⚙️ PUT /api/orders/:id/status → Update order status (no backtracking)
 ========================================================= */
 router.put("/:id/status", authMiddleware, async (req, res) => {
   const { id } = req.params;
@@ -232,6 +232,22 @@ router.put("/:id/status", authMiddleware, async (req, res) => {
   }
 
   try {
+    const existingOrder = await prisma.order.findUnique({ where: { id } });
+    if (!existingOrder) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Enforce forward-only flow
+    const currentIndex = allowedStatuses.indexOf(existingOrder.status);
+    const newIndex = allowedStatuses.indexOf(status);
+
+    // Disallow moving backwards (e.g., shipped → pending)
+    if (newIndex < currentIndex) {
+      return res.status(400).json({
+        message: `Invalid transition: cannot move from '${existingOrder.status}' back to '${status}'`,
+      });
+    }
+
     const order = await prisma.order.update({
       where: { id },
       data: { status },
@@ -240,6 +256,7 @@ router.put("/:id/status", authMiddleware, async (req, res) => {
         items: { include: { product: { select: { id: true, name: true, price: true } } } },
       },
     });
+
     res.json(order);
   } catch (err) {
     if (err.code === "P2025") {
@@ -247,6 +264,155 @@ router.put("/:id/status", authMiddleware, async (req, res) => {
     }
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+/* =========================================================
+ 📊 GET /api/orders/analytics/summary → Admin analytics data
+========================================================= */
+router.get("/analytics/summary", authMiddleware, async (req, res) => {
+  try {
+    // 1️⃣ Aggregate total orders by status
+    const statusCounts = await prisma.order.groupBy({
+      by: ["status"],
+      _count: { status: true },
+    });
+
+    const statusData = allowedStatuses.map((s) => ({
+      status: s,
+      count: statusCounts.find((x) => x.status === s)?._count.status || 0,
+    }));
+
+    // 2️⃣ Calculate total revenue
+    const totalRevenue = await prisma.order.aggregate({
+      _sum: { total: true },
+    });
+
+    // 3️⃣ Revenue trends
+
+    // (a) Revenue for last 30 days (daily)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+
+    const revenueLast30Days = await prisma.$queryRaw`
+      SELECT 
+        DATE("createdAt") AS date,
+        SUM(total)::float AS revenue,
+        COUNT(*)::int AS orders
+      FROM "Order"
+      WHERE "createdAt" >= ${thirtyDaysAgo}
+      GROUP BY DATE("createdAt")
+      ORDER BY DATE("createdAt") ASC
+    `;
+
+    const trend30Days = [];
+    for (let i = 0; i < 30; i++) {
+      // ✅ FIXED: base date from thirtyDaysAgo, not new Date()
+      const d = new Date(thirtyDaysAgo);
+      d.setDate(thirtyDaysAgo.getDate() + i);
+
+      const dayStr = d.toISOString().split("T")[0];
+      const found = revenueLast30Days.find((x) => {
+        const dbDate =
+          typeof x.date === "string"
+            ? x.date.split("T")[0]
+            : x.date.toISOString().split("T")[0];
+        return dbDate === dayStr;
+      });
+
+      trend30Days.push({
+        date: dayStr,
+        revenue: found?.revenue || 0,
+        orders: found?.orders || 0,
+      });
+    }
+
+    // (b) Revenue per month for the current year
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+
+    const revenueByMonthRaw = await prisma.$queryRaw`
+      SELECT 
+        DATE_TRUNC('month', "createdAt") AS month,
+        SUM(total)::float AS revenue,
+        COUNT(*)::int AS orders
+      FROM "Order"
+      WHERE "createdAt" >= ${startOfYear}
+      GROUP BY DATE_TRUNC('month', "createdAt")
+      ORDER BY month ASC
+    `;
+
+    // ✅ FIXED: Fill missing months (Jan–Dec) even if no orders
+    const revenueByMonth = [];
+    for (let i = 0; i < 12; i++) {
+      const monthDate = new Date(new Date().getFullYear(), i, 1);
+      const found = revenueByMonthRaw.find(
+        (r) =>
+          new Date(r.month).getMonth() === monthDate.getMonth()
+      );
+      revenueByMonth.push({
+        month: monthDate.toLocaleString("default", { month: "short" }),
+        revenue: found?.revenue || 0,
+        orders: found?.orders || 0,
+      });
+    }
+
+    // 4️⃣ Top 5 products by quantity ordered
+    const topProducts = await prisma.orderItem.groupBy({
+      by: ["productId"],
+      _sum: { quantity: true },
+      orderBy: { _sum: { quantity: "desc" } },
+      take: 5,
+    });
+
+    const productDetails = await prisma.product.findMany({
+      where: { id: { in: topProducts.map((p) => p.productId) } },
+      select: { id: true, name: true },
+    });
+
+    const enrichedTopProducts = topProducts.map((p) => ({
+      productId: p.productId,
+      name:
+        productDetails.find((pd) => pd.id === p.productId)?.name || "Unknown",
+      quantity: p._sum.quantity || 0,
+    }));
+
+    // 5️⃣ Parent Category analytics
+    const categorySales = await prisma.$queryRaw`
+      SELECT 
+        COALESCE(pc.name, 'Uncategorized') AS category,
+        SUM(oi.quantity * oi.price)::float AS revenue,
+        SUM(oi.quantity)::int AS total_items
+      FROM "OrderItem" oi
+      JOIN "Product" p ON oi."productId" = p.id
+      LEFT JOIN "ParentCategory" pc ON p."parentCategoryId" = pc.id
+      GROUP BY pc.name
+      ORDER BY revenue DESC
+      LIMIT 10
+    `;
+
+    // 6️⃣ Additional metrics
+    const totalOrders = await prisma.order.count();
+    const deliveredOrders = await prisma.order.count({
+      where: { status: "delivered" },
+    });
+    const cancelledOrders = await prisma.order.count({
+      where: { status: "cancelled" },
+    });
+
+    // 7️⃣ Combine all results
+    res.json({
+      totalOrders,
+      totalRevenue: totalRevenue._sum.total || 0,
+      deliveredOrders,
+      cancelledOrders,
+      statusData,
+      trend30Days,      // ✅ daily (for line chart)
+      revenueByMonth,   // ✅ monthwise (for bar chart)
+      topProducts: enrichedTopProducts,
+      categorySales,
+    });
+  } catch (err) {
+    console.error("❌ Analytics fetch error:", err);
+    res.status(500).json({ message: "Failed to fetch analytics" });
   }
 });
 
