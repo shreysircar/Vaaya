@@ -11,6 +11,8 @@ import { toast } from "react-hot-toast";
 import { apiRequest } from "@/utils/api";
 import { applySaleToProduct } from "@/utils/saleUtils";
 import type { Sale } from "@/utils/saleUtils";
+import { formatPrice } from "@/utils/priceFormatter";
+
 
 
 /* ---------------- TYPES ---------------- */
@@ -263,7 +265,7 @@ useEffect(() => {
   {hasSale ? (
     <>
       <p className="text-[15px] line-through font-medium" style={{ color: "#888" }}>
-        ₹{product.price.toFixed(2)}
+        {formatPrice(product.price)}
       </p>
       <p
         className="font-semibold text-lg"
@@ -271,15 +273,16 @@ useEffect(() => {
           color: COLORS.PRIMARY_TEAL,
         }}
       >
-        ₹{finalPrice.toFixed(2)}
+        {formatPrice(finalPrice)}
       </p>
     </>
   ) : (
     <p className="font-semibold text-lg" style={{ color: "#000" }}>
-      ₹{product.price.toFixed(2)}
+      {formatPrice(product.price)}
     </p>
   )}
 </div>
+
 
         </div>
 

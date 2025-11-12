@@ -3,6 +3,7 @@ import { apiRequest } from "@/utils/api";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation"; // 🟢 added router import
 import { motion } from "framer-motion";
+import { formatPrice } from "@/utils/priceFormatter";
 import {
   ShoppingCart,
   CheckCircle,
@@ -290,20 +291,21 @@ const increaseQty = () => {
 
 <div className="flex items-center gap-2 mb-6">
   <Tag className="w-5 h-5 text-[#292524]" />
-  {hasSale ? (
-    <>
-      <span className="text-xl line-through text-gray-500">
-        ₹{product.price.toLocaleString()}
-      </span>
-      <span className="text-2xl font-semibold text-[#292524]">
-        ₹{finalPrice?.toLocaleString()}
-      </span>
-    </>
-  ) : (
-    <span className="text-2xl font-semibold text-[#292524]">
-      ₹{product.price.toLocaleString()}
+{hasSale ? (
+  <>
+    <span className="text-xl line-through text-gray-500">
+      {formatPrice(product.price)}
     </span>
-  )}
+    <span className="text-2xl font-semibold text-[#292524]">
+      {formatPrice(finalPrice)}
+    </span>
+  </>
+) : (
+  <span className="text-2xl font-semibold text-[#292524]">
+    {formatPrice(product.price)}
+  </span>
+)}
+
 </div>
 
 

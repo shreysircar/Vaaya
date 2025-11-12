@@ -7,6 +7,13 @@ import { isSaleActive, applySale, saleAppliesToProduct } from "../utils/saleUtil
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// ✅ Consistent price rounding helper
+const normalizePrice = (value) => {
+  if (typeof value !== "number" || isNaN(value)) return 0;
+  return parseFloat(value.toFixed(2));
+};
+
+
 /* -------------------------------------------------------------------------- */
 /* 🧭 GET all products (public)                                               */
 /* -------------------------------------------------------------------------- */
@@ -36,19 +43,24 @@ router.get("/", async (req, res) => {
       },
     });
 
-    // 🧮 Append discounted price if any active sale applies
-    const enriched = products.map((p) => {
-      const matchedSale = activeSales.find((s) => saleAppliesToProduct(s, p));
-      if (matchedSale && isSaleActive(matchedSale)) {
-        p.discountedPrice = applySale(p.price, matchedSale);
-        p.saleInfo = {
-          title: matchedSale.title,
-          discountType: matchedSale.discountType?.toUpperCase() || "FLAT",
-          discountValue: matchedSale.discountValue,
-        };
-      }
-      return p;
-    });
+// 🧮 Append discounted price if any active sale applies
+const enriched = products.map((p) => {
+  // ✅ Normalize base price
+  p.price = normalizePrice(p.price);
+
+  const matchedSale = activeSales.find((s) => saleAppliesToProduct(s, p));
+  if (matchedSale && isSaleActive(matchedSale)) {
+    p.discountedPrice = normalizePrice(applySale(p.price, matchedSale));
+    p.saleInfo = {
+      title: matchedSale.title,
+      discountType: matchedSale.discountType?.toUpperCase() || "FLAT",
+      discountValue: matchedSale.discountValue,
+    };
+  }
+
+  return p;
+});
+
 
     res.json(enriched);
 
@@ -93,14 +105,18 @@ router.get("/:id", async (req, res) => {
     });
 
     const matchedSale = activeSales.find((s) => saleAppliesToProduct(s, product));
-    if (matchedSale && isSaleActive(matchedSale)) {
-      product.discountedPrice = applySale(product.price, matchedSale);
-      product.saleInfo = {
-        title: matchedSale.title,
-        discountType: matchedSale.discountType?.toUpperCase() || "FLAT",
-        discountValue: matchedSale.discountValue,
-      };
-    }
+// ✅ Normalize price always
+product.price = normalizePrice(product.price);
+
+if (matchedSale && isSaleActive(matchedSale)) {
+  product.discountedPrice = normalizePrice(applySale(product.price, matchedSale));
+  product.saleInfo = {
+    title: matchedSale.title,
+    discountType: matchedSale.discountType?.toUpperCase() || "FLAT",
+    discountValue: matchedSale.discountValue,
+  };
+}
+
 
     res.json(product);
 
