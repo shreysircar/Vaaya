@@ -265,7 +265,14 @@ const saleSlides = salesArray.map((sale: any, i: number) => ({
                       initial={{ y: 20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.8, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                      onClick={() => router.push("/shop")}
+                      onClick={() => {
+  if (slide.id?.toString().startsWith("sale-") || slide.id?.length > 10) {
+    router.push("/sale");
+  } else {
+    router.push("/shop");
+  }
+}}
+
                       className="px-6 py-2 md:px-8 md:py-3 rounded-full font-semibold uppercase tracking-wide shadow-md text-sm md:text-base"
                      style={{ backgroundColor: slide.buttonColor, color: "white" }}
                     >

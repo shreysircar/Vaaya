@@ -3,7 +3,7 @@ import prisma from "../prismaClient.js";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.js";
 
 // 🧩 Import shared utilities
-import { isSaleActive, applySale } from "../utils/saleUtils.js";
+import { isSaleActive, applySale, checkOverlappingSale } from "../utils/saleUtils.js";
 
 const router = express.Router();
 
@@ -55,6 +55,15 @@ router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const data = req.body;
 
+    // 🧠 Check for overlapping sales before creating
+    const overlap = await checkOverlappingSale(data);
+    if (overlap) {
+      return res.status(400).json({
+        error:
+          "Another active sale already exists for this product, category, subcategory, or global level during this time range.",
+      });
+    }
+
     const sale = await prisma.sale.create({
       data: {
         title: data.title,
@@ -84,6 +93,35 @@ router.put("/:id", authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
+
+    // 🧠 Prevent overlapping active sales (except the one being updated)
+    const overlap = await prisma.sale.findFirst({
+      where: {
+        id: { not: id },
+        isActive: true,
+        startDate: { lte: new Date(data.endDate) },
+        endDate: { gte: new Date(data.startDate) },
+        OR: [
+          { productId: data.productId || undefined },
+          { subCategoryId: data.subCategoryId || undefined },
+          { parentCategoryId: data.parentCategoryId || undefined },
+          {
+            AND: [
+              { productId: null },
+              { subCategoryId: null },
+              { parentCategoryId: null },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (overlap) {
+      return res.status(400).json({
+        error:
+          "Another active sale already exists for this target during this time range.",
+      });
+    }
 
     const sale = await prisma.sale.update({
       where: { id },

@@ -144,7 +144,16 @@ export default function SalesAdminPage() {
       const method = editingSale ? "PUT" : "POST";
       const url = editingSale ? `/api/sales/${editingSale.id}` : "/api/sales";
 
-      await apiRequest<Sale>(url, { method, body: formData, token });
+      // ✅ Ensure empty fields send null (so backend detects Global Sale)
+const body = {
+  ...formData,
+  parentCategoryId: formData.parentCategoryId || null,
+  subCategoryId: formData.subCategoryId || null,
+  productId: formData.productId || null,
+};
+
+await apiRequest<Sale>(url, { method, body, token });
+
       alert(editingSale ? "Sale updated successfully" : "Sale created");
       setModalOpen(false);
       fetchSales(token!);
@@ -199,6 +208,7 @@ export default function SalesAdminPage() {
                 <th className="p-3 font-semibold">Title</th>
                 <th className="p-3 font-semibold">Type</th>
                 <th className="p-3 font-semibold">Value</th>
+                <th className="p-3 font-semibold">Target</th>
                 <th className="p-3 font-semibold">Start</th>
                 <th className="p-3 font-semibold">End</th>
                 <th className="p-3 font-semibold">Active</th>
@@ -215,6 +225,16 @@ export default function SalesAdminPage() {
                       ? `${sale.discountValue}%`
                       : `₹${sale.discountValue}`}
                   </td>
+                  <td className="p-3">
+  {!sale.productId && !sale.subCategoryId && !sale.parentCategoryId
+    ? "🌍 Global"
+    : sale.productId
+    ? "🎯 Product"
+    : sale.subCategoryId
+    ? "🧩 Subcategory"
+    : "📦 Category"}
+</td>
+
                   <td className="p-3">{formatDate(sale.startDate)}</td>
                   <td className="p-3">{formatDate(sale.endDate)}</td>
                   <td className="p-3">
