@@ -20,18 +20,30 @@ export default function CategoriesPage() {
   const [editDesc, setEditDesc] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
 
-  const API = process.env.NEXT_PUBLIC_API_URL!;
+  //const API = process.env.NEXT_PUBLIC_API_URL!;
+const API = `${process.env.NEXT_PUBLIC_API_URL}/api/categories`;
 
-  const fetchParents = async () => {
+  /*const fetchParents = async () => {
     try {
       const res = await axios.get(API);
       setParents(res.data);
     } catch (err) {
       console.error("Error fetching parents:", err);
     }
-  };
+  };*/
 
-  const fetchSubs = async (parentCategoryId?: string) => {
+  const fetchParents = async () => {
+  try {
+    const res = await axios.get(API);
+    setParents(Array.isArray(res.data) ? res.data : []);
+  } catch (err) {
+    console.error("Error fetching parents:", err);
+    setParents([]);
+  }
+};
+
+
+  /*const fetchSubs = async (parentCategoryId?: string) => {
     try {
       const url = parentCategoryId
         ? `${API}/sub?parentCategoryId=${parentCategoryId}`
@@ -41,7 +53,22 @@ export default function CategoriesPage() {
     } catch (err) {
       console.error("Error fetching subcategories:", err);
     }
-  };
+  };*/
+  const fetchSubs = async (parentCategoryId?: string) => {
+  try {
+    const url = parentCategoryId
+      ? `${API}/sub?parentCategoryId=${parentCategoryId}`
+      : `${API}/sub`;
+
+    const res = await axios.get(url);
+
+    setSubs(Array.isArray(res.data) ? res.data : []);
+  } catch (err) {
+    console.error("Error fetching subcategories:", err);
+    setSubs([]); // 👈 prevents crash
+  }
+};
+
 
   useEffect(() => {
     fetchParents();
