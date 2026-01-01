@@ -1,57 +1,120 @@
-This project is a custom-built online shopping website, designed as a modern, single-seller e-commerce platform similar to Amazon, developed exclusively for one business to sell its own products. The platform provides a complete online shopping experience for customers, along with a powerful admin system for managing products, orders, and users.
+# 🛍️ Vaaya — Full-Stack E-Commerce Platform
 
-🔹 Customer-Facing Features
+Vaaya is a **production-ready full-stack e-commerce web application** built for a **single-seller business**, similar in concept to Amazon but designed for one brand to sell its own products.
+It includes a customer-facing storefront and a secure admin dashboard for complete store management.
 
-Modern homepage with dynamic banners, categories, and featured products
+The architecture is designed to scale and can be extended to a **multi-seller marketplace** in the future.
 
-User authentication (login, registration, profile management)
+---
 
-Browse products by category and subcategory
+## 🌐 Live Demo
 
-Detailed product pages with images, pricing, stock, and descriptions
+* **Frontend:** [https://vaayafrontend.vercel.app](https://vaayafrontend.vercel.app)
+* **Backend API:** [https://vaaya-backend.onrender.com](https://vaaya-backend.onrender.com)
 
-Shopping cart with quantity control and real-time price updates
+> Fully deployed — no local setup required to access the app.
 
-Wishlist functionality
+---
 
-Secure checkout flow
+## ✨ Features
 
-Order placement and order history tracking
+### Customer
 
-🔹 Admin Dashboard (Single Seller Control Panel)
+* User authentication (register, login, profile)
+* Browse products by category & subcategory
+* Product detail pages with images, pricing, and stock
+* Shopping cart with real-time updates
+* Wishlist functionality
+* Secure checkout flow
+* Order history tracking
 
-Secure admin login for the business owner
+### Admin Panel
 
-Product management (add, update, delete products with image uploads)
+* Secure admin authentication
+* Category & subcategory management
+* Product CRUD operations
+* Order management
+* User management
+* Inventory & stock control
+* Homepage content management
 
-Category and subcategory management
+---
 
-User management
+## 🧱 Tech Stack
 
-Order management with status tracking
+### Frontend
 
-Inventory and stock control
+* Next.js (App Router)
+* TypeScript
+* Tailwind CSS
+* Axios
 
-Homepage content management (banners, featured sections)
+### Backend
 
-🔹 Technical & Scalability Highlights
+* Node.js
+* Express.js
+* Prisma ORM
+* JWT authentication
 
-Built using a modern, scalable web architecture
+### Database
 
-Backend APIs for authentication, products, cart, orders, and admin operations
+* PostgreSQL (Neon)
 
-Relational database design optimized for performance
+### Deployment
 
-Cloud-ready image handling for production use
+* Frontend: Vercel
+* Backend: Render
+* Database: Neon
 
-Designed to support future upgrades to a multi-seller marketplace without major restructuring
+---
 
-🔹 Business Value
+## 🏗️ Architecture Overview
 
-Dedicated platform for a single brand or business
+* Frontend and backend are fully decoupled
+* RESTful API design
+* JWT-based role authentication (Admin / User)
+* Relational schema optimized for scalability
+* Environment-based configuration for production and development
 
-Full ownership and control (no third-party marketplace dependency)
+---
 
-Scalable and production-ready
+## 🚀 Scalability
 
-Easy to maintain and expand as the business grows
+* Designed as a **single-seller platform**
+* Database and schema structured to support:
+
+  * Multiple sellers
+  * Seller dashboards
+  * Role-based access control
+* Cloud-hosted infrastructure allows horizontal scaling
+
+---
+
+## 🧪 Local Development (Optional)
+
+```bash
+# Backend
+cd backend
+npm install
+npm run dev
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 📌 Notes
+
+* Image handling is cloud-ready (external URLs)
+* Admin panel is part of the same frontend app
+* Production database is hosted remotely (Neon)
+
+---
+
+## 👨‍💻 Author
+
+**Shrey Sircar**
+Full-Stack Developer
