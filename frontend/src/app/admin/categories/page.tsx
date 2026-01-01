@@ -20,7 +20,7 @@ export default function CategoriesPage() {
   const [editDesc, setEditDesc] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
 
-  const API = "http://localhost:5000/api/categories";
+  const API = process.env.NEXT_PUBLIC_API_URL!;
 
   const fetchParents = async () => {
     try {
