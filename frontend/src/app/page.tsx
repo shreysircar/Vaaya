@@ -83,10 +83,6 @@ export default function HomePage() {
 
   // cycle slides
   useEffect(() => {
-        console.log(
-      "NEXT_PUBLIC_API_URL =",
-      process.env.NEXT_PUBLIC_API_URL
-    );
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % bannerSlides.length);
     }, 8000);
