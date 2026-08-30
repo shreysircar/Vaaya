@@ -9,6 +9,7 @@ The architecture is designed to scale and can be extended to a **multi-seller ma
 
 ## 🌐 Live Demo
 
+* **Admin Panel:** [https://vaayafrontend.vercel.app/admin](https://vaayafrontend.vercel.app/admin)
 * **Frontend:** [https://vaayafrontend.vercel.app](https://vaayafrontend.vercel.app)
 * **Backend API:** [https://vaaya-backend.onrender.com](https://vaaya-backend.onrender.com)
 
